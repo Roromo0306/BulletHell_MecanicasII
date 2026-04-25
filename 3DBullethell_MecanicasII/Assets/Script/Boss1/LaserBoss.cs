@@ -8,6 +8,10 @@ public class LaserBoss : MonoBehaviour
     public BossShake bossShake;
     public LineRenderer lineRenderer;
 
+    [Header("Telegraph")]
+    public float telegraphDuration = 1.2f;
+    public float blinkSpeed = 8f;
+
     [Header("Laser Settings")]
     public float warningShakeTime = 1f;
     public float laserDuration = 1.2f;
@@ -39,6 +43,8 @@ public class LaserBoss : MonoBehaviour
         }
     }
 
+
+
     public IEnumerator DoAttack()
     {
         yield return StartCoroutine(bossShake.Shake(warningShakeTime));
@@ -50,16 +56,63 @@ public class LaserBoss : MonoBehaviour
         direction.y = 0f;
         direction.Normalize();
 
+        yield return StartCoroutine(ShowTelegraph(direction));
+
         yield return StartCoroutine(FireLaser(direction));
     }
 
+    private IEnumerator ShowTelegraph(Vector3 direction)
+    {
+        float timer = 0f;
+
+        if (lineRenderer != null)
+        {
+            lineRenderer.enabled = true;
+
+            lineRenderer.startWidth = 0.08f;
+            lineRenderer.endWidth = 0.08f;
+
+            lineRenderer.startColor = Color.yellow;
+            lineRenderer.endColor = Color.yellow;
+        }
+
+        while (timer < telegraphDuration)
+        {
+            Vector3 start = laserOrigin.position;
+            Vector3 end = start + direction * laserRange;
+
+            if (lineRenderer != null)
+            {
+                lineRenderer.SetPosition(0, start + Vector3.up * 0.3f);
+                lineRenderer.SetPosition(1, end + Vector3.up * 0.3f);
+
+                float alpha = Mathf.Abs(Mathf.Sin(Time.time * blinkSpeed));
+
+                Color blinkColor = new Color(1f, 1f, 0f, alpha);
+
+                lineRenderer.startColor = blinkColor;
+                lineRenderer.endColor = blinkColor;
+            }
+
+            timer += Time.deltaTime;
+            yield return null;
+        }
+    }
     private IEnumerator FireLaser(Vector3 direction)
     {
         float timer = 0f;
         nextDamageTime = 0f;
 
         if (lineRenderer != null)
+        {
             lineRenderer.enabled = true;
+
+            lineRenderer.startWidth = laserWidth;
+            lineRenderer.endWidth = laserWidth;
+
+            lineRenderer.startColor = Color.red;
+            lineRenderer.endColor = Color.red;
+        }
 
         while (timer < laserDuration)
         {
@@ -99,4 +152,6 @@ public class LaserBoss : MonoBehaviour
             }
         }
     }
+
+
 }
