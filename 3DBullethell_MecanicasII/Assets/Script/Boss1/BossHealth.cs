@@ -18,7 +18,7 @@ public class BossHealth : MonoBehaviour
 
     [Header("UI")]
     public Slider healthSlider;
-
+    public ResultScreenUI resultScreenUI;
     private bool isDead;
 
     private void Awake()
@@ -52,7 +52,6 @@ public class BossHealth : MonoBehaviour
 
     private void Die()
     {
-        
         isDead = true;
 
         if (bossController != null)
@@ -69,6 +68,9 @@ public class BossHealth : MonoBehaviour
 
         if (laserBoss != null)
             Destroy(laserBoss);
+
+        if (resultScreenUI != null)
+            resultScreenUI.ShowWin();
 
         Debug.Log("Boss derrotado");
     }

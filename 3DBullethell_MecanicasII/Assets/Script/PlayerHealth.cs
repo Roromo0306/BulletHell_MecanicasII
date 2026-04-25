@@ -7,7 +7,7 @@ public class PlayerHealth : MonoBehaviour
     public int currentHearts;
 
     public UnityEvent onHealthChanged;
-
+    public ResultScreenUI resultScreenUI;
     private bool isDead;
 
     private void Awake()
@@ -50,6 +50,10 @@ public class PlayerHealth : MonoBehaviour
     private void Die()
     {
         isDead = true;
+
+        if (resultScreenUI != null)
+            resultScreenUI.ShowLose();
+
         Debug.Log("Player muerto");
     }
 }
