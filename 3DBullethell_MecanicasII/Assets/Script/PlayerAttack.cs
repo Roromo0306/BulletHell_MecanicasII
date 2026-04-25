@@ -12,7 +12,7 @@ public class PlayerAttack : MonoBehaviour
     public float attackDuration = 0.25f;
     public float hitboxStartTime = 0.06f;
     public float hitboxActiveTime = 0.12f;
-    public float attackCooldown = 0.35f;
+    public float attackCooldown = 0.15f;
     public float attackMoveLockTime = 0.18f;
 
     [Header("References")]
@@ -34,6 +34,7 @@ public class PlayerAttack : MonoBehaviour
         if (Input.GetKeyDown(attackKeyKeyboard) || Input.GetKeyDown(attackKeyGamepad))
         {
             TryAttack();
+            Debug.Log("Estoy atacando");
         }
     }
 

@@ -4,7 +4,7 @@ using UnityEngine;
 public class SwordHitbox : MonoBehaviour
 {
     [Header("Damage")]
-    public int damage = 1;
+    public int damage = 10;
 
     private Collider hitboxCollider;
     private readonly List<GameObject> alreadyHit = new List<GameObject>();
@@ -30,6 +30,15 @@ public class SwordHitbox : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         if (alreadyHit.Contains(other.gameObject)) return;
+
+        BossDamageReceiver boss = other.GetComponent<BossDamageReceiver>();
+
+        if (boss != null)
+        {
+            alreadyHit.Add(other.gameObject);
+            boss.TakeDamage(damage);
+            return;
+        }
 
         EnemyHealth enemy = other.GetComponent<EnemyHealth>();
 
