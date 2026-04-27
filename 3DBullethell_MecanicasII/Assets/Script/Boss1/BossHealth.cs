@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 
 public class BossHealth : MonoBehaviour
 {
@@ -70,7 +71,7 @@ public class BossHealth : MonoBehaviour
             Destroy(laserBoss);
 
         if (resultScreenUI != null)
-            resultScreenUI.ShowWin();
+            StartCoroutine(WinRoutine());
 
         Debug.Log("Boss derrotado");
     }
@@ -89,5 +90,13 @@ public class BossHealth : MonoBehaviour
 
             Destroy(explosion, destroyExplosionAfter);
         }
+    }
+
+    IEnumerator WinRoutine()
+    {
+        yield return new WaitForSeconds(1f);
+
+        if (resultScreenUI != null)
+            resultScreenUI.ShowWin();
     }
 }

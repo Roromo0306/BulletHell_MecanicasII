@@ -19,6 +19,7 @@ public class PlayerAttack : MonoBehaviour
     public PlayerMovement playerMovement;
     public Transform swordPivot;
     public SwordHitbox swordHitbox;
+    public bool CanAttack { get; set; } = true;
 
     private bool isAttacking;
     private float nextAttackTime;
@@ -40,6 +41,7 @@ public class PlayerAttack : MonoBehaviour
 
     private void TryAttack()
     {
+        if (!CanAttack) return;
         if (isAttacking) return;
         if (Time.time < nextAttackTime) return;
 

@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -11,6 +12,16 @@ public class PlayerMovement : MonoBehaviour
     [Header("References")]
     public Transform visual;
     public Transform swordPivot;
+
+    [Header("Dash")]
+    public float dashSpeed = 15f;
+    public float dashDuration = 0.2f;
+    public float dashCooldown = 1f;
+
+    private bool isDashing = false;
+    private bool canDash = true;
+
+    private PlayerHealth playerHealth;
 
 
     private Rigidbody rb;
@@ -33,12 +44,23 @@ public class PlayerMovement : MonoBehaviour
 
         if (swordPivot != null)
             originalSwordPivotScale = swordPivot.localScale;
+        playerHealth = GetComponent<PlayerHealth>();
     }
 
     private void Update()
     {
         ReadInput();
         FlipCharacter();
+
+        if (Input.GetKeyDown(KeyCode.JoystickButton3) || Input.GetKeyDown(KeyCode.LeftShift))
+        {
+            Debug.Log("Botón dash pulsado");
+
+            if (canDash && CanMove)
+            {
+                StartCoroutine(Dash());
+            }
+        }
     }
 
     private void FixedUpdate()
@@ -74,21 +96,25 @@ public class PlayerMovement : MonoBehaviour
 
     private void Move()
     {
-        Vector3 targetVelocity = moveInput * moveSpeed;
+        if (!isDashing)
+        {
+            Vector3 targetVelocity = moveInput * moveSpeed;
 
-        float rate = moveInput.sqrMagnitude > 0.01f ? acceleration : deceleration;
+            float rate = moveInput.sqrMagnitude > 0.01f ? acceleration : deceleration;
 
-        currentVelocity = Vector3.MoveTowards(
-            currentVelocity,
-            targetVelocity,
-            rate * Time.fixedDeltaTime
-        );
+            currentVelocity = Vector3.MoveTowards(
+                currentVelocity,
+                targetVelocity,
+                rate * Time.fixedDeltaTime
+            );
 
-        rb.velocity = new Vector3(
-            currentVelocity.x,
-            rb.velocity.y,
-            currentVelocity.z
-        );
+            rb.velocity = new Vector3(
+                currentVelocity.x,
+                rb.velocity.y,
+                currentVelocity.z
+            );
+        }
+        
     }
 
     private void FlipCharacter()
@@ -115,5 +141,42 @@ public class PlayerMovement : MonoBehaviour
                 originalSwordPivotScale.z
             );
         }
+    }
+
+    IEnumerator Dash()
+    {
+        isDashing = true;
+        canDash = false;
+
+        Debug.Log("Dash iniciado");
+
+        Vector3 dashDirection = moveInput.sqrMagnitude > 0.01f
+            ? moveInput.normalized
+            : LastMoveDirection.normalized;
+
+        if (playerHealth != null)
+            playerHealth.StartInvulnerability(dashDuration);
+
+        float timer = 0f;
+
+        while (timer < dashDuration)
+        {
+            rb.velocity = new Vector3(
+                dashDirection.x * dashSpeed,
+                rb.velocity.y,
+                dashDirection.z * dashSpeed
+            );
+
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
+        currentVelocity = dashDirection * moveSpeed;
+        isDashing = false;
+
+        Debug.Log("Dash terminado");
+
+        yield return new WaitForSeconds(dashCooldown);
+        canDash = true;
     }
 }
