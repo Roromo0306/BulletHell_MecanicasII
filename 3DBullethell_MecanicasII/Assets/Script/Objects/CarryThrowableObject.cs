@@ -156,7 +156,17 @@ public class CarryThrowableObject : MonoBehaviour
 
             if (boss != null)
                 boss.TakeDamage(damage);
+
+            Boss2DamageReceiver boss2 = hit.GetComponentInParent<Boss2DamageReceiver>();
+
+            if (boss2 != null)
+            {
+                boss2.TakeDamage(damage);
+                continue;
+            }
         }
+
+        
 
         if (impactParticles != null)
             Instantiate(impactParticles, transform.position, Quaternion.identity);

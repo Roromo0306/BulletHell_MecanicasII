@@ -40,6 +40,15 @@ public class SwordHitbox : MonoBehaviour
             return;
         }
 
+        Boss2DamageReceiver boss2 = other.GetComponent<Boss2DamageReceiver>();
+
+        if (boss2 != null)
+        {
+            alreadyHit.Add(other.gameObject);
+            boss2.TakeDamage(damage);
+            return;
+        }
+
         EnemyHealth enemy = other.GetComponent<EnemyHealth>();
 
         if (enemy != null)
