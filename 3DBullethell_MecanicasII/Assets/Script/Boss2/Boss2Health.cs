@@ -47,7 +47,7 @@ public class Boss2Health : MonoBehaviour
     {
         isDead = true;
         Debug.Log("Boss 2 muerto");
-        deadParticles.Play(deadParticles);
+        deadParticles.Play();
 
         StartCoroutine(WinRoutine());
     }
