@@ -1087,6 +1087,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHealth: 10
   currentHealth: 0
+  deadParticles: {fileID: 2984326263288568497, guid: 78716a1ea724e5542b4e73515285f69c, type: 3}
   onHealthChanged:
     m_PersistentCalls:
       m_Calls:

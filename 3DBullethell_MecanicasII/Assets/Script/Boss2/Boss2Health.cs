@@ -6,7 +6,7 @@ public class Boss2Health : MonoBehaviour
 {
     public int maxHealth = 100;
     public int currentHealth;
-
+    public ParticleSystem deadParticles;
     public UnityEvent onHealthChanged;
     public ResultScreenUI resultScreenUI;
 
@@ -47,6 +47,7 @@ public class Boss2Health : MonoBehaviour
     {
         isDead = true;
         Debug.Log("Boss 2 muerto");
+        deadParticles.Play(deadParticles);
 
         StartCoroutine(WinRoutine());
     }
