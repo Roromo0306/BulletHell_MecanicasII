@@ -10,6 +10,10 @@ public class Boss3Health : MonoBehaviour
     public UnityEvent onHealthChanged;
     public ResultScreenUI resultScreenUI;
 
+    [Header("Death FX")]
+    public GameObject deathExplosionPrefab;
+    public Transform deathExplosionPoint;
+
     private bool isDead;
     public bool IsDead => isDead;
 
@@ -48,7 +52,29 @@ public class Boss3Health : MonoBehaviour
         isDead = true;
         Debug.Log("Boss 3 muerto");
 
+        SpawnDeathExplosion();
+        DisableBossColliders();
+
         StartCoroutine(WinRoutine());
+    }
+
+    private void SpawnDeathExplosion()
+    {
+        if (deathExplosionPrefab == null) return;
+
+        Vector3 spawnPos = deathExplosionPoint != null
+            ? deathExplosionPoint.position
+            : transform.position;
+
+        Instantiate(deathExplosionPrefab, spawnPos, Quaternion.identity);
+    }
+
+    private void DisableBossColliders()
+    {
+        Collider[] colliders = GetComponentsInChildren<Collider>();
+
+        foreach (Collider col in colliders)
+            col.enabled = false;
     }
 
     private IEnumerator WinRoutine()
