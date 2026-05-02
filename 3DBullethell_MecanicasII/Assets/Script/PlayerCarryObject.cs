@@ -127,7 +127,7 @@ public class PlayerCarryObject : MonoBehaviour
         if (direction.sqrMagnitude < 0.01f)
             direction = Vector3.right * playerMovement.FacingDirection;
 
-        heldObject.Throw(direction.normalized, charge01);
+        heldObject.Throw(direction.normalized, charge01, transform);
 
         heldObject = null;
         chargeTimer = 0f;

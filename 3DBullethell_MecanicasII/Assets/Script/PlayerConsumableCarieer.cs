@@ -8,8 +8,9 @@ public class PlayerConsumableCarrier : MonoBehaviour
     public PlayerCarryObject playerCarryObject;
     public Transform consumableHoldPoint;
     public TimeSlowManager timeSlowManager;
+    public BubbleShieldController bubbleShieldController;
 
-    [Header("Pickup")]
+    [Header("Pickup / Drop")]
     public KeyCode pickupKeyKeyboard = KeyCode.F;
     public KeyCode pickupKeyGamepad = KeyCode.JoystickButton2;
     public float pickupRange = 1.3f;
@@ -17,7 +18,14 @@ public class PlayerConsumableCarrier : MonoBehaviour
 
     [Header("Use")]
     public KeyCode useKeyKeyboard = KeyCode.Q;
-    public KeyCode useKeyGamepad = KeyCode.JoystickButton6; // L2 normalmente
+    public KeyCode useKeyGamepad = KeyCode.JoystickButton6; // prueba también 7, 4, 5
+
+    [Header("Optional L2 Axis")]
+    public bool useAxisForL2 = false;
+    public string l2AxisName = "L2";
+    public float l2AxisThreshold = 0.5f;
+
+    private bool l2AxisWasHeld;
 
     private ConsumableObject heldConsumable;
     private ConsumableObject nearbyConsumable;
@@ -39,7 +47,7 @@ public class PlayerConsumableCarrier : MonoBehaviour
     private void Update()
     {
         DetectNearbyConsumable();
-        HandlePickup();
+        HandlePickupOrDrop();
         HandleUse();
         UpdateHeldFlip();
     }
@@ -68,48 +76,98 @@ public class PlayerConsumableCarrier : MonoBehaviour
         }
     }
 
-    private void HandlePickup()
+    private void HandlePickupOrDrop()
     {
-        
-        if (Input.GetKeyDown(pickupKeyKeyboard) || Input.GetKeyDown(pickupKeyGamepad))
+        if (!Input.GetKeyDown(pickupKeyKeyboard) && !Input.GetKeyDown(pickupKeyGamepad))
+            return;
+
+        if (HasConsumable)
         {
-            
-            if (HasConsumable)
-            {
-                DropConsumable();
-                return;
-            }
-
-           
-            if (nearbyConsumable != null)
-            {
-                if (playerCarryObject != null && playerCarryObject.HasObject)
-                    return;
-
-                PickUp(nearbyConsumable);
-            }
+            DropConsumable();
+            return;
         }
+
+        if (nearbyConsumable == null) return;
+
+        if (playerCarryObject != null && playerCarryObject.HasObject)
+            return;
+
+        PickUp(nearbyConsumable);
     }
 
     private void PickUp(ConsumableObject consumable)
     {
         heldConsumable = consumable;
         heldConsumable.PickUp(consumableHoldPoint);
+
+        Debug.Log("Consumible recogido: " + heldConsumable.consumableType);
+    }
+
+    private void DropConsumable()
+    {
+        if (heldConsumable == null) return;
+
+        Vector3 dropDir = playerMovement.LastMoveDirection;
+
+        if (dropDir.sqrMagnitude < 0.01f)
+            dropDir = Vector3.right * playerMovement.FacingDirection;
+
+        dropDir.y = 0f;
+        dropDir.Normalize();
+
+        Vector3 dropPos = transform.position + dropDir * 0.8f;
+        dropPos.y = transform.position.y;
+
+        heldConsumable.Drop(dropPos);
+        heldConsumable = null;
+
+        Debug.Log("Consumible soltado");
     }
 
     private void HandleUse()
     {
         if (!HasConsumable) return;
 
-        if (Input.GetKeyDown(useKeyKeyboard) || Input.GetKeyDown(useKeyGamepad))
+        if (UseButtonPressed())
         {
+            Debug.Log("Botón usar consumible pulsado");
             UseConsumable();
         }
+    }
+
+    private bool UseButtonPressed()
+    {
+        bool pressed = Input.GetKeyDown(useKeyKeyboard) || Input.GetKeyDown(useKeyGamepad);
+
+        if (useAxisForL2)
+        {
+            float axisValue = 0f;
+
+            try
+            {
+                axisValue = Mathf.Abs(Input.GetAxisRaw(l2AxisName));
+            }
+            catch
+            {
+                axisValue = 0f;
+            }
+
+            bool axisHeld = axisValue > l2AxisThreshold;
+
+            if (axisHeld && !l2AxisWasHeld)
+                pressed = true;
+
+            l2AxisWasHeld = axisHeld;
+        }
+
+        return pressed;
     }
 
     private void UseConsumable()
     {
         if (heldConsumable == null) return;
+
+        Debug.Log("Usando consumible: " + heldConsumable.consumableType);
 
         switch (heldConsumable.consumableType)
         {
@@ -119,6 +177,10 @@ public class PlayerConsumableCarrier : MonoBehaviour
 
             case ConsumableType.Hourglass:
                 UseHourglass();
+                break;
+
+            case ConsumableType.BubbleShield:
+                UseBubbleShield();
                 break;
         }
     }
@@ -141,12 +203,30 @@ public class PlayerConsumableCarrier : MonoBehaviour
     {
         if (timeSlowManager != null)
             timeSlowManager.PlaySlowMotion();
+        else
+            Debug.LogWarning("Falta asignar TimeSlowManager");
 
         ConsumeHeld();
     }
 
+    private void UseBubbleShield()
+    {
+        if (bubbleShieldController != null)
+        {
+            Debug.Log("Activando Bubble Shield");
+            bubbleShieldController.Activate();
+            ConsumeHeld();
+        }
+        else
+        {
+            Debug.LogWarning("Falta asignar BubbleShieldController en PlayerConsumableCarrier");
+        }
+    }
+
     private void ConsumeHeld()
     {
+        if (heldConsumable == null) return;
+
         heldConsumable.Consume();
         heldConsumable = null;
     }
@@ -157,24 +237,5 @@ public class PlayerConsumableCarrier : MonoBehaviour
         if (playerMovement == null) return;
 
         heldConsumable.SetFacing(playerMovement.FacingDirection);
-    }
-
-    private void DropConsumable()
-    {
-        if (heldConsumable == null) return;
-
-        Vector3 dropDir = playerMovement.LastMoveDirection;
-
-        if (dropDir.sqrMagnitude < 0.01f)
-            dropDir = Vector3.right * playerMovement.FacingDirection;
-
-        dropDir.y = 0f;
-        dropDir.Normalize();
-
-        Vector3 dropPos = transform.position + dropDir * 0.8f;
-        dropPos.y = transform.position.y;
-
-        heldConsumable.Drop(dropPos);
-        heldConsumable = null;
     }
 }

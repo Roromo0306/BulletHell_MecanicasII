@@ -61,25 +61,6 @@ public class ConsumableObject : MonoBehaviour
         transform.localRotation = Quaternion.identity;
     }
 
-    public void SetFacing(int direction)
-    {
-        facingDirection = direction;
-
-        if (visual == null) return;
-
-        Vector3 scale = visual.localScale;
-        scale.x = Mathf.Abs(scale.x) * facingDirection;
-        visual.localScale = scale;
-    }
-
-    public void Consume()
-    {
-        if (spawner != null)
-            spawner.StartRespawnTimer();
-
-        Destroy(gameObject);
-    }
-
     public void Drop(Vector3 dropPosition)
     {
         isHeld = false;
@@ -98,5 +79,24 @@ public class ConsumableObject : MonoBehaviour
             rb.velocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
         }
+    }
+
+    public void SetFacing(int direction)
+    {
+        facingDirection = direction;
+
+        if (visual == null) return;
+
+        Vector3 scale = visual.localScale;
+        scale.x = Mathf.Abs(scale.x) * facingDirection;
+        visual.localScale = scale;
+    }
+
+    public void Consume()
+    {
+        if (spawner != null)
+            spawner.StartRespawnTimer();
+
+        Destroy(gameObject);
     }
 }

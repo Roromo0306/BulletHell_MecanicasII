@@ -1,9 +1,12 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public enum ThrowableType
 {
     RumBottle,
-    CannonBall
+    CannonBall,
+    Anchor
 }
 
 public class CarryThrowableObject : MonoBehaviour
@@ -17,8 +20,14 @@ public class CarryThrowableObject : MonoBehaviour
     public float maxThrowDistance = 8f;
     public float throwSpeed = 12f;
     public float throwArcHeight = 4f;
-    public float impactDelay = 0.15f;
-    private bool canImpact;
+    public bool useGravityOnThrow = true;
+
+    [Header("Boomerang Anchor")]
+    public float boomerangSpeed = 9f;
+    public float boomerangReturnSpeed = 11f;
+    public float boomerangSideCurve = 1.2f;
+    public float boomerangReturnCatchDistance = 0.6f;
+    public float boomerangMaxReturnTime = 3f;
 
     [Header("Damage")]
     public int damage = 1;
@@ -35,9 +44,12 @@ public class CarryThrowableObject : MonoBehaviour
     private Rigidbody rb;
     private Collider col;
     private CarryObjectSpawner spawner;
+
     private bool isHeld;
     private bool hasBeenThrown;
     private int facingDirection = 1;
+
+    private readonly List<GameObject> alreadyHitBosses = new List<GameObject>();
 
     public bool CanBePickedUp => !isHeld && !hasBeenThrown;
 
@@ -53,7 +65,12 @@ public class CarryThrowableObject : MonoBehaviour
         {
             rb.isKinematic = true;
             rb.useGravity = false;
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
         }
+
+        if (col != null)
+            col.isTrigger = true;
     }
 
     public void SetSpawner(CarryObjectSpawner newSpawner)
@@ -75,18 +92,20 @@ public class CarryThrowableObject : MonoBehaviour
     {
         isHeld = true;
         hasBeenThrown = false;
+        alreadyHitBosses.Clear();
+
+        CancelInvoke();
 
         if (rb != null)
         {
             rb.isKinematic = true;
+            rb.useGravity = false;
             rb.velocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
         }
 
         if (col != null)
-        {
             col.enabled = false;
-        }
 
         transform.SetParent(holdPoint);
         transform.localPosition = Vector3.zero;
@@ -104,11 +123,22 @@ public class CarryThrowableObject : MonoBehaviour
         visual.localScale = scale;
     }
 
-    public void Throw(Vector3 direction, float charge01)
+    public void Throw(Vector3 direction, float charge01, Transform returnTarget = null)
+    {
+        if (throwableType == ThrowableType.Anchor)
+        {
+            ThrowAnchorBoomerang(direction, charge01, returnTarget);
+            return;
+        }
+
+        ThrowNormal(direction, charge01);
+    }
+
+    private void ThrowNormal(Vector3 direction, float charge01)
     {
         isHeld = false;
         hasBeenThrown = true;
-        canImpact = false;
+        alreadyHitBosses.Clear();
 
         transform.SetParent(null);
 
@@ -121,7 +151,7 @@ public class CarryThrowableObject : MonoBehaviour
         if (rb != null)
         {
             rb.isKinematic = false;
-            rb.useGravity = true;
+            rb.useGravity = useGravityOnThrow;
 
             Vector3 horizontalVelocity = direction.normalized * throwSpeed * Mathf.Lerp(0.5f, 1f, charge01);
             Vector3 verticalVelocity = Vector3.up * throwArcHeight;
@@ -130,63 +160,178 @@ public class CarryThrowableObject : MonoBehaviour
             rb.angularVelocity = Vector3.zero;
         }
 
-        Invoke(nameof(EnableImpact), impactDelay);
         Invoke(nameof(Impact), destroyAfterSeconds);
+    }
+
+    private void ThrowAnchorBoomerang(Vector3 direction, float charge01, Transform returnTarget)
+    {
+        isHeld = false;
+        hasBeenThrown = true;
+        alreadyHitBosses.Clear();
+
+        transform.SetParent(null);
+
+        if (returnTarget == null)
+        {
+            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null)
+                returnTarget = playerObj.transform;
+        }
+
+        if (rb != null)
+        {
+            rb.isKinematic = true;
+            rb.useGravity = false;
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+
+        if (col != null)
+        {
+            col.enabled = true;
+            col.isTrigger = true;
+        }
+
+        StartCoroutine(AnchorBoomerangRoutine(direction.normalized, charge01, returnTarget));
+    }
+
+    private IEnumerator AnchorBoomerangRoutine(Vector3 direction, float charge01, Transform returnTarget)
+    {
+        float distance = GetThrowDistance(charge01);
+
+        Vector3 start = transform.position;
+        Vector3 end = start + direction * distance;
+
+        Vector3 side = new Vector3(-direction.z, 0f, direction.x);
+
+        float outDuration = Mathf.Max(0.15f, distance / boomerangSpeed);
+        float timer = 0f;
+
+        while (timer < outDuration)
+        {
+            timer += Time.deltaTime;
+            float t = timer / outDuration;
+
+            Vector3 pos = Vector3.Lerp(start, end, t);
+            pos += side * Mathf.Sin(t * Mathf.PI) * boomerangSideCurve;
+            pos.y = start.y;
+
+            transform.position = pos;
+
+            yield return null;
+        }
+
+        timer = 0f;
+
+        while (timer < boomerangMaxReturnTime)
+        {
+            timer += Time.deltaTime;
+
+            Vector3 targetPos;
+
+            if (returnTarget != null)
+                targetPos = returnTarget.position + Vector3.up * 0.7f;
+            else
+                targetPos = start;
+
+            transform.position = Vector3.MoveTowards(
+                transform.position,
+                targetPos,
+                boomerangReturnSpeed * Time.deltaTime
+            );
+
+            if (Vector3.Distance(transform.position, targetPos) <= boomerangReturnCatchDistance)
+                break;
+
+            yield return null;
+        }
+
+        FinishThrownObject();
     }
 
     private void OnCollisionEnter(Collision collision)
     {
         if (!hasBeenThrown) return;
-        if (!canImpact) return;
+        if (throwableType == ThrowableType.Anchor) return;
 
         Impact();
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (!hasBeenThrown) return;
+        if (throwableType != ThrowableType.Anchor) return;
+
+        DamageBossFromCollider(other);
     }
 
     private void Impact()
     {
         if (!hasBeenThrown) return;
 
-        hasBeenThrown = false;
+        DamageBossesInRadius();
 
+        if (impactParticles != null)
+            Instantiate(impactParticles, transform.position, Quaternion.identity);
+
+        FinishThrownObject();
+    }
+
+    private void DamageBossesInRadius()
+    {
         Collider[] hits = Physics.OverlapSphere(transform.position, damageRadius, damageLayer);
 
         foreach (Collider hit in hits)
         {
-            BossDamageReceiver boss = hit.GetComponentInParent<BossDamageReceiver>();
+            DamageBossFromCollider(hit);
+        }
+    }
 
-            if (boss != null)
-                boss.TakeDamage(damage);
+    private void DamageBossFromCollider(Collider hit)
+    {
+        GameObject rootObject = hit.transform.root.gameObject;
 
-            Boss2DamageReceiver boss2 = hit.GetComponentInParent<Boss2DamageReceiver>();
+        if (alreadyHitBosses.Contains(rootObject))
+            return;
 
-            if (boss2 != null)
-            {
-                boss2.TakeDamage(damage);
-                continue;
-            }
+        BossDamageReceiver boss1 = hit.GetComponentInParent<BossDamageReceiver>();
 
-            Boss3DamageReceiver boss3 = hit.GetComponentInParent<Boss3DamageReceiver>();
-
-            if (boss3 != null)
-            {
-                boss3.TakeDamage(damage);
-                continue;
-            }
+        if (boss1 != null)
+        {
+            alreadyHitBosses.Add(rootObject);
+            boss1.TakeDamage(damage);
+            return;
         }
 
-        
+        Boss2DamageReceiver boss2 = hit.GetComponentInParent<Boss2DamageReceiver>();
 
-        if (impactParticles != null)
-            Instantiate(impactParticles, transform.position, Quaternion.identity);
+        if (boss2 != null)
+        {
+            alreadyHitBosses.Add(rootObject);
+            boss2.TakeDamage(damage);
+            return;
+        }
+
+        Boss3DamageReceiver boss3 = hit.GetComponentInParent<Boss3DamageReceiver>();
+
+        if (boss3 != null)
+        {
+            alreadyHitBosses.Add(rootObject);
+            boss3.TakeDamage(damage);
+            return;
+        }
+    }
+
+    private void FinishThrownObject()
+    {
+        if (!hasBeenThrown) return;
+
+        hasBeenThrown = false;
+        CancelInvoke();
 
         if (spawner != null)
             spawner.StartRespawnTimer();
 
         Destroy(gameObject);
-    }
-
-    private void EnableImpact()
-    {
-        canImpact = true;
     }
 }

@@ -1,5 +1,6 @@
 public enum ConsumableType
 {
     Heart,
-    Hourglass
+    Hourglass,
+    BubbleShield
 }
