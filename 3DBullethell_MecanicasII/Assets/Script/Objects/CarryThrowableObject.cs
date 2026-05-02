@@ -164,6 +164,14 @@ public class CarryThrowableObject : MonoBehaviour
                 boss2.TakeDamage(damage);
                 continue;
             }
+
+            Boss3DamageReceiver boss3 = hit.GetComponentInParent<Boss3DamageReceiver>();
+
+            if (boss3 != null)
+            {
+                boss3.TakeDamage(damage);
+                continue;
+            }
         }
 
         
