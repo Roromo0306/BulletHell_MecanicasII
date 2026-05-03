@@ -929,6 +929,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   damageVignette: {fileID: 1707550900}
   cameraShake: {fileID: 963194231}
+  bubbleShieldController: {fileID: 457344802}
   invulnerabilityDuration: 1
   visualRoot: {fileID: 645070824}
   maxHearts: 5
@@ -1011,7 +1012,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 0
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
+  m_Size: {x: 2, y: 2, z: 2}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &457344802
 MonoBehaviour:
@@ -1026,8 +1027,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   visualRoot: {fileID: 1483817775}
-  shieldCollider: {fileID: 457344795}
+  shieldCollider: {fileID: 457344801}
   duration: 5
+  damageGraceAfterPop: 0.12
   warningBlinkTime: 1
   hitBlinkTime: 0.45
   blinkInterval: 0.08
@@ -2752,7 +2754,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 0}
+  m_audioClip: {fileID: 8300000, guid: 168e71d6b036eb342b3cdcf6c0431947, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 1
   m_Pitch: 1

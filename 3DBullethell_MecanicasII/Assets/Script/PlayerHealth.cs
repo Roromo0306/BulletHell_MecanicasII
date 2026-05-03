@@ -8,6 +8,9 @@ public class PlayerHealth : MonoBehaviour
     public DamageVignettePostProcess damageVignette;
     public CameraShake cameraShake;
 
+    [Header("Bubble Shield")]
+    public BubbleShieldController bubbleShieldController;
+
     [Header("Invulnerability")]
     public float invulnerabilityDuration = 0.15f;
     private float invulnerableUntilTime = 0f;
@@ -31,6 +34,9 @@ public class PlayerHealth : MonoBehaviour
 
         if (visualRoot != null)
             spriteRenderers = visualRoot.GetComponentsInChildren<SpriteRenderer>();
+
+        if (bubbleShieldController == null)
+            bubbleShieldController = GetComponentInChildren<BubbleShieldController>(true);
     }
 
     private void Start()
@@ -41,6 +47,16 @@ public class PlayerHealth : MonoBehaviour
     public void TakeDamage(int amount)
     {
         if (isDead) return;
+
+        if (bubbleShieldController != null && bubbleShieldController.IsBlockingDamage)
+        {
+            Debug.Log("Daño bloqueado por Bubble Shield");
+
+            if (bubbleShieldController.IsActive)
+                bubbleShieldController.PopFromHit();
+
+            return;
+        }
 
         if (IsInvulnerable())
         {
@@ -128,7 +144,7 @@ public class PlayerHealth : MonoBehaviour
         StartCoroutine(DieRoutine());
     }
 
-    IEnumerator DieRoutine()
+    private IEnumerator DieRoutine()
     {
         yield return new WaitForSeconds(1f);
 

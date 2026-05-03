@@ -8,6 +8,9 @@ public class BubbleShieldController : MonoBehaviour
     public Collider shieldCollider;
     public float duration = 5f;
 
+    [Header("Protection")]
+    public float damageGraceAfterPop = 0.12f;
+
     [Header("Blink")]
     public float warningBlinkTime = 1f;
     public float hitBlinkTime = 0.45f;
@@ -20,10 +23,21 @@ public class BubbleShieldController : MonoBehaviour
     public GameObject popParticles;
 
     private Renderer[] renderers;
+    private ParticleSystem[] particleSystems;
     private Coroutine routine;
+
     private bool isActive;
+    private float blockDamageUntilTime;
 
     public bool IsActive => isActive;
+
+    public bool IsBlockingDamage
+    {
+        get
+        {
+            return isActive || Time.unscaledTime < blockDamageUntilTime;
+        }
+    }
 
     private void Awake()
     {
@@ -34,16 +48,9 @@ public class BubbleShieldController : MonoBehaviour
             visualRoot = transform;
 
         renderers = visualRoot.GetComponentsInChildren<Renderer>(true);
+        particleSystems = visualRoot.GetComponentsInChildren<ParticleSystem>(true);
 
         DisableShieldImmediate();
-    }
-
-    private void OnDisable()
-    {
-        if (shieldCollider != null)
-            shieldCollider.enabled = false;
-
-        isActive = false;
     }
 
     public void Activate()
@@ -59,6 +66,7 @@ public class BubbleShieldController : MonoBehaviour
     private IEnumerator ShieldRoutine()
     {
         isActive = true;
+        blockDamageUntilTime = 0f;
 
         SetVisualVisible(true);
 
@@ -117,6 +125,9 @@ public class BubbleShieldController : MonoBehaviour
     {
         isActive = false;
 
+        // Esto evita que una bala haga daño en el mismo frame en el que rompe la pompa.
+        blockDamageUntilTime = Time.unscaledTime + damageGraceAfterPop;
+
         if (shieldCollider != null)
             shieldCollider.enabled = false;
 
@@ -155,12 +166,29 @@ public class BubbleShieldController : MonoBehaviour
 
     private void SetVisualVisible(bool visible)
     {
-        if (renderers == null) return;
+        if (visualRoot != null && visualRoot != transform)
+            visualRoot.gameObject.SetActive(visible);
 
-        foreach (Renderer r in renderers)
+        if (renderers != null)
         {
-            if (r != null)
-                r.enabled = visible;
+            foreach (Renderer r in renderers)
+            {
+                if (r != null)
+                    r.enabled = visible;
+            }
+        }
+
+        if (particleSystems != null)
+        {
+            foreach (ParticleSystem ps in particleSystems)
+            {
+                if (ps == null) continue;
+
+                if (visible)
+                    ps.Play(true);
+                else
+                    ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            }
         }
     }
 
