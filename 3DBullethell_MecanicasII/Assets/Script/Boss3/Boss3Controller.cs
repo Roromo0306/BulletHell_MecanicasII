@@ -19,13 +19,13 @@ public class Boss3Controller : MonoBehaviour
     public float randomOffsetChangeTime = 2f;
 
     [Header("Bullet Speeds")]
-    public float normalBulletSpeedPhase1 = 4f;
-    public float normalBulletSpeedPhase3 = 4.8f;
-    public float pulsingBulletSpeedPhase2 = 3.2f;
-    public float pulsingBulletSpeedPhase3 = 3.8f;
+    public float normalBulletSpeedPhase1 = 3.6f;
+    public float normalBulletSpeedPhase3 = 4.4f;
+    public float pulsingBulletSpeedPhase2 = 2.8f;
+    public float pulsingBulletSpeedPhase3 = 3.4f;
 
     [Header("Attack Timing")]
-    public float timeBetweenAttacks = 1.4f;
+    public float timeBetweenAttacks = 1.6f;
 
     [Header("Pre Attack Shake")]
     public float preAttackShakeDuration = 0.28f;
@@ -48,6 +48,11 @@ public class Boss3Controller : MonoBehaviour
     public float ramMaxDistance = 9f;
     public float ramRecoveryTime = 0.45f;
 
+    [Header("Spike Attack")]
+    public Boss3SpikeTrap spikePrefab;
+    public float spikeGroundYOffset = 0f;
+    public float spikeDelayBetweenSpawns = 0.3f;
+
     private int currentPhase = 1;
 
     private bool isAttacking;
@@ -69,6 +74,7 @@ public class Boss3Controller : MonoBehaviour
         if (player == null)
         {
             GameObject p = GameObject.FindGameObjectWithTag("Player");
+
             if (p != null)
                 player = p.transform;
         }
@@ -166,20 +172,20 @@ public class Boss3Controller : MonoBehaviour
         Vector3 liftedPos = startPos + Vector3.up * rageLiftHeight;
 
         float liftTime = 0.35f;
-        float t = 0f;
+        float timer = 0f;
 
-        while (t < liftTime)
+        while (timer < liftTime)
         {
-            t += Time.deltaTime;
-            transform.position = Vector3.Lerp(startPos, liftedPos, t / liftTime);
+            timer += Time.deltaTime;
+            transform.position = Vector3.Lerp(startPos, liftedPos, timer / liftTime);
             yield return null;
         }
 
-        t = 0f;
+        timer = 0f;
 
-        while (t < rageDuration)
+        while (timer < rageDuration)
         {
-            t += Time.deltaTime;
+            timer += Time.deltaTime;
 
             Vector3 shake = Random.insideUnitSphere * rageShakeStrength;
             transform.position = liftedPos + shake;
@@ -187,12 +193,12 @@ public class Boss3Controller : MonoBehaviour
             yield return null;
         }
 
-        t = 0f;
+        timer = 0f;
 
-        while (t < liftTime)
+        while (timer < liftTime)
         {
-            t += Time.deltaTime;
-            transform.position = Vector3.Lerp(liftedPos, startPos, t / liftTime);
+            timer += Time.deltaTime;
+            transform.position = Vector3.Lerp(liftedPos, startPos, timer / liftTime);
             yield return null;
         }
 
@@ -226,6 +232,7 @@ public class Boss3Controller : MonoBehaviour
         nextRamTime = Time.time + ramCooldown;
 
         Vector3 startPos = transform.position;
+
         Vector3 direction = player.position - transform.position;
         direction.y = 0f;
 
@@ -299,7 +306,7 @@ public class Boss3Controller : MonoBehaviour
             if (bossHealth != null && bossHealth.IsDead)
                 yield break;
 
-            if (!isRaging && !isRamming)
+            if (!isRaging && !isRamming && !phaseChanging)
             {
                 isAttacking = true;
 
@@ -344,81 +351,110 @@ public class Boss3Controller : MonoBehaviour
 
     private IEnumerator Phase1Attack()
     {
-        int r = Random.Range(0, 6);
+        int r = Random.Range(0, 7);
 
         switch (r)
         {
             case 0:
                 yield return StartCoroutine(Normal_BloomFan());
                 break;
+
             case 1:
                 yield return StartCoroutine(Normal_RingWithSafeGap());
                 break;
+
             case 2:
                 yield return StartCoroutine(Normal_DoubleSpiral());
                 break;
+
             case 3:
                 yield return StartCoroutine(Normal_ArteryCurtain());
                 break;
+
             case 4:
                 yield return StartCoroutine(Normal_SlowWideSpiral());
                 break;
+
             case 5:
                 yield return StartCoroutine(Normal_BrokenSpiral());
+                break;
+
+            case 6:
+                yield return StartCoroutine(Spike_PlayerPositionAttack(1));
                 break;
         }
     }
 
     private IEnumerator Phase2Attack()
     {
-        int r = Random.Range(0, 4);
+        int r = Random.Range(0, 5);
 
         switch (r)
         {
             case 0:
                 yield return StartCoroutine(Pulse_HeartbeatRings());
                 break;
+
             case 1:
                 yield return StartCoroutine(Pulse_AimedArteries());
                 break;
+
             case 2:
                 yield return StartCoroutine(Pulse_HeartbeatSpiral());
                 break;
+
             case 3:
                 yield return StartCoroutine(Pulse_DoubleHeartbeatSpiral());
+                break;
+
+            case 4:
+                yield return StartCoroutine(Spike_PlayerPositionAttack(2));
                 break;
         }
     }
 
     private IEnumerator Phase3Attack()
     {
-        int r = Random.Range(0, 6);
+        int r = Random.Range(0, 8);
 
         switch (r)
         {
             case 0:
                 yield return StartCoroutine(Combo_BloomHeartbeat());
                 break;
+
             case 1:
                 yield return StartCoroutine(Combo_GapRingArteries());
                 break;
+
             case 2:
                 yield return StartCoroutine(Combo_SpiralPulseNest());
                 break;
+
             case 3:
                 yield return StartCoroutine(Combo_CurtainHeartbeats());
                 break;
+
             case 4:
                 yield return StartCoroutine(Combo_HelixHeartbeat());
                 break;
+
             case 5:
                 yield return StartCoroutine(Combo_ClosingSpiral());
+                break;
+
+            case 6:
+                yield return StartCoroutine(Spike_PlayerPositionAttack(3));
+                break;
+
+            case 7:
+                yield return StartCoroutine(Combo_SpikesAndHeartbeats());
                 break;
         }
     }
 
     // -------------------------
-    // FASE 1: 4 patrones normales
+    // FASE 1 - NORMALES
     // -------------------------
 
     private IEnumerator Normal_BloomFan()
@@ -483,84 +519,40 @@ public class Boss3Controller : MonoBehaviour
         }
     }
 
-    private IEnumerator Combo_ClosingSpiral()
+    private IEnumerator Normal_ArteryCurtain()
     {
         float baseAngle = DirectionToAngle(DirectionToPlayer());
-        float spiralAngle = baseAngle;
 
-        for (int wave = 0; wave < 4; wave++)
+        int waves = 6;
+
+        for (int w = 0; w < waves; w++)
         {
-            for (int i = 0; i < 18; i++)
-            {
-                spiralAngle += 18f;
+            float offset = w % 2 == 0 ? 0f : 12f;
 
-                float pullToPlayer = Mathf.Lerp(0f, 45f, i / 17f);
+            SpawnNormal(baseAngle - 105f + offset, normalBulletSpeedPhase1);
+            SpawnNormal(baseAngle - 75f + offset, normalBulletSpeedPhase1);
+            SpawnNormal(baseAngle - 45f + offset, normalBulletSpeedPhase1);
 
-                SpawnNormal(spiralAngle + pullToPlayer, normalBulletSpeedPhase3);
-                SpawnNormal(spiralAngle + 180f - pullToPlayer, normalBulletSpeedPhase3);
-
-                if (i % 5 == 0)
-                {
-                    SpawnPulse(baseAngle + Random.Range(-25f, 25f), pulsingBulletSpeedPhase3, 1.4f, i * 0.03f);
-                }
-
-                yield return new WaitForSeconds(0.035f);
-            }
+            SpawnNormal(baseAngle + 45f - offset, normalBulletSpeedPhase1);
+            SpawnNormal(baseAngle + 75f - offset, normalBulletSpeedPhase1);
+            SpawnNormal(baseAngle + 105f - offset, normalBulletSpeedPhase1);
 
             yield return new WaitForSeconds(0.18f);
         }
     }
-    private IEnumerator Combo_HelixHeartbeat()
+
+    private IEnumerator Normal_SlowWideSpiral()
     {
         float angle = Random.Range(0f, 360f);
 
-        for (int i = 0; i < 64; i++)
+        for (int i = 0; i < 55; i++)
         {
-            angle += 12f;
+            angle += 13f;
 
-            SpawnNormal(angle, normalBulletSpeedPhase3);
-
-            if (i % 2 == 0)
-            {
-                SpawnPulse(angle + 120f, pulsingBulletSpeedPhase3, 1.25f, i * 0.02f);
-                SpawnPulse(angle - 120f, pulsingBulletSpeedPhase3, 1.25f, i * 0.025f);
-            }
-
-            yield return new WaitForSeconds(0.04f);
-        }
-    }
-
-    private IEnumerator Pulse_DoubleHeartbeatSpiral()
-    {
-        float angle = Random.Range(0f, 360f);
-
-        for (int i = 0; i < 54; i++)
-        {
-            angle += 14f;
-
-            float phaseOffsetA = i * 0.025f;
-            float phaseOffsetB = phaseOffsetA + 0.12f;
-
-            SpawnPulse(angle, pulsingBulletSpeedPhase2, 1.35f, phaseOffsetA);
-            SpawnPulse(angle + 180f, pulsingBulletSpeedPhase2, 1.35f, phaseOffsetB);
+            SpawnNormal(angle, normalBulletSpeedPhase1);
+            SpawnNormal(angle + 160f, normalBulletSpeedPhase1 * 0.95f);
 
             yield return new WaitForSeconds(0.045f);
-        }
-    }
-
-    private IEnumerator Pulse_HeartbeatSpiral()
-    {
-        float angle = Random.Range(0f, 360f);
-
-        for (int i = 0; i < 48; i++)
-        {
-            angle += 16f;
-
-            float phaseOffset = i * 0.035f;
-
-            SpawnPulse(angle, pulsingBulletSpeedPhase2, 1.45f, phaseOffset);
-
-            yield return new WaitForSeconds(0.055f);
         }
     }
 
@@ -584,44 +576,8 @@ public class Boss3Controller : MonoBehaviour
         }
     }
 
-    private IEnumerator Normal_SlowWideSpiral()
-    {
-        float angle = Random.Range(0f, 360f);
-
-        for (int i = 0; i < 55; i++)
-        {
-            angle += 13f;
-
-            SpawnNormal(angle, normalBulletSpeedPhase1);
-            SpawnNormal(angle + 160f, normalBulletSpeedPhase1 * 0.95f);
-
-            yield return new WaitForSeconds(0.045f);
-        }
-    }
-    private IEnumerator Normal_ArteryCurtain()
-    {
-        float baseAngle = DirectionToAngle(DirectionToPlayer());
-
-        int waves = 6;
-
-        for (int w = 0; w < waves; w++)
-        {
-            float offset = w % 2 == 0 ? 0f : 12f;
-
-            SpawnNormal(baseAngle - 105f + offset, normalBulletSpeedPhase1);
-            SpawnNormal(baseAngle - 75f + offset, normalBulletSpeedPhase1);
-            SpawnNormal(baseAngle - 45f + offset, normalBulletSpeedPhase1);
-
-            SpawnNormal(baseAngle + 45f - offset, normalBulletSpeedPhase1);
-            SpawnNormal(baseAngle + 75f - offset, normalBulletSpeedPhase1);
-            SpawnNormal(baseAngle + 105f - offset, normalBulletSpeedPhase1);
-
-            yield return new WaitForSeconds(0.18f);
-        }
-    }
-
     // -------------------------
-    // FASE 2: 2 patrones de latido
+    // FASE 2 - PULSANTES
     // -------------------------
 
     private IEnumerator Pulse_HeartbeatRings()
@@ -667,8 +623,42 @@ public class Boss3Controller : MonoBehaviour
         }
     }
 
+    private IEnumerator Pulse_HeartbeatSpiral()
+    {
+        float angle = Random.Range(0f, 360f);
+
+        for (int i = 0; i < 48; i++)
+        {
+            angle += 16f;
+
+            float phaseOffset = i * 0.035f;
+
+            SpawnPulse(angle, pulsingBulletSpeedPhase2, 1.45f, phaseOffset);
+
+            yield return new WaitForSeconds(0.055f);
+        }
+    }
+
+    private IEnumerator Pulse_DoubleHeartbeatSpiral()
+    {
+        float angle = Random.Range(0f, 360f);
+
+        for (int i = 0; i < 54; i++)
+        {
+            angle += 14f;
+
+            float phaseOffsetA = i * 0.025f;
+            float phaseOffsetB = phaseOffsetA + 0.12f;
+
+            SpawnPulse(angle, pulsingBulletSpeedPhase2, 1.35f, phaseOffsetA);
+            SpawnPulse(angle + 180f, pulsingBulletSpeedPhase2, 1.35f, phaseOffsetB);
+
+            yield return new WaitForSeconds(0.045f);
+        }
+    }
+
     // -------------------------
-    // FASE 3: combos
+    // FASE 3 - COMBOS
     // -------------------------
 
     private IEnumerator Combo_BloomHeartbeat()
@@ -767,6 +757,115 @@ public class Boss3Controller : MonoBehaviour
 
             yield return new WaitForSeconds(0.17f);
         }
+    }
+
+    private IEnumerator Combo_HelixHeartbeat()
+    {
+        float angle = Random.Range(0f, 360f);
+
+        for (int i = 0; i < 64; i++)
+        {
+            angle += 12f;
+
+            SpawnNormal(angle, normalBulletSpeedPhase3);
+
+            if (i % 2 == 0)
+            {
+                SpawnPulse(angle + 120f, pulsingBulletSpeedPhase3, 1.25f, i * 0.02f);
+                SpawnPulse(angle - 120f, pulsingBulletSpeedPhase3, 1.25f, i * 0.025f);
+            }
+
+            yield return new WaitForSeconds(0.04f);
+        }
+    }
+
+    private IEnumerator Combo_ClosingSpiral()
+    {
+        float baseAngle = DirectionToAngle(DirectionToPlayer());
+        float spiralAngle = baseAngle;
+
+        for (int wave = 0; wave < 4; wave++)
+        {
+            for (int i = 0; i < 18; i++)
+            {
+                spiralAngle += 18f;
+
+                float pullToPlayer = Mathf.Lerp(0f, 45f, i / 17f);
+
+                SpawnNormal(spiralAngle + pullToPlayer, normalBulletSpeedPhase3);
+                SpawnNormal(spiralAngle + 180f - pullToPlayer, normalBulletSpeedPhase3);
+
+                if (i % 5 == 0)
+                {
+                    SpawnPulse(baseAngle + Random.Range(-25f, 25f), pulsingBulletSpeedPhase3, 1.4f, i * 0.03f);
+                }
+
+                yield return new WaitForSeconds(0.035f);
+            }
+
+            yield return new WaitForSeconds(0.18f);
+        }
+    }
+
+    // -------------------------
+    // SPIKE ATTACKS
+    // -------------------------
+
+    private IEnumerator Spike_PlayerPositionAttack(int spikeCount)
+    {
+        if (spikePrefab == null || player == null)
+            yield break;
+
+        for (int i = 0; i < spikeCount; i++)
+        {
+            Vector3 spawnPos = player.position;
+            spawnPos.y += spikeGroundYOffset;
+
+            Boss3SpikeTrap spike = Instantiate(
+                spikePrefab,
+                spawnPos,
+                Quaternion.identity
+            );
+
+            spike.Begin();
+
+            yield return new WaitForSeconds(spikeDelayBetweenSpawns);
+        }
+
+        yield return new WaitForSeconds(0.5f);
+    }
+
+    private IEnumerator Combo_SpikesAndHeartbeats()
+    {
+        if (player == null)
+            yield break;
+
+        for (int wave = 0; wave < 3; wave++)
+        {
+            Vector3 spawnPos = player.position;
+            spawnPos.y += spikeGroundYOffset;
+
+            if (spikePrefab != null)
+            {
+                Boss3SpikeTrap spike = Instantiate(
+                    spikePrefab,
+                    spawnPos,
+                    Quaternion.identity
+                );
+
+                spike.Begin();
+            }
+
+            float baseAngle = DirectionToAngle(DirectionToPlayer());
+
+            SpawnPulse(baseAngle - 25f, pulsingBulletSpeedPhase3, 1.3f, 0f);
+            SpawnPulse(baseAngle, pulsingBulletSpeedPhase3, 1.5f, 0.08f);
+            SpawnPulse(baseAngle + 25f, pulsingBulletSpeedPhase3, 1.3f, 0.16f);
+
+            yield return new WaitForSeconds(0.45f);
+        }
+
+        yield return new WaitForSeconds(0.4f);
     }
 
     // -------------------------
