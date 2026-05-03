@@ -1220,6 +1220,9 @@ MonoBehaviour:
   ramSpeed: 11
   ramMaxDistance: 9
   ramRecoveryTime: 0.45
+  spikePrefab: {fileID: 9203506234482056425, guid: 15d10274b4ab4f548997805628df0eb2, type: 3}
+  spikeGroundYOffset: 0
+  spikeDelayBetweenSpawns: 0.3
 --- !u!1 &530123577
 GameObject:
   m_ObjectHideFlags: 0
