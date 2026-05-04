@@ -1176,21 +1176,9 @@ MonoBehaviour:
   currentHealth: 0
   onHealthChanged:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 868945891}
-        m_TargetAssemblyTypeName: Boss2HealthUI, Assembly-CSharp
-        m_MethodName: UpdateHealth
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
   resultScreenUI: {fileID: 1415708228}
-  deathExplosionPrefab: {fileID: 0}
+  deathExplosionPrefab: {fileID: 2053140162486756902, guid: 78716a1ea724e5542b4e73515285f69c, type: 3}
   deathExplosionPoint: {fileID: 0}
 --- !u!1 &501351450
 GameObject:
@@ -1868,6 +1856,7 @@ GameObject:
   - component: {fileID: 716501352}
   - component: {fileID: 716501351}
   - component: {fileID: 716501354}
+  - component: {fileID: 716501355}
   m_Layer: 5
   m_Name: NextButton
   m_TagString: Untagged
@@ -1939,7 +1928,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 716501352}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1415708228}
+        m_TargetAssemblyTypeName: ResultScreenUI, Assembly-CSharp
+        m_MethodName: NextLevel
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &716501352
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1990,12 +1991,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f27ce4bda0e7b154da5f5155a9fc8544, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  target: {fileID: 0}
+  target: {fileID: 716501350}
   normalScale: 1
   selectedScale: 1.12
   pressedScale: 0.92
   scaleSpeed: 16
   borderVisual: {fileID: 0}
+--- !u!114 &716501355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 716501349}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fae7973f0b41eef4c8aa787537f0b36c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  normalScale: 1
+  hoverScale: 1.12
+  clickScale: 0.92
+  tweenSpeed: 14
+  audioSource: {fileID: 0}
+  hoverSound: {fileID: 0}
+  clickSound: {fileID: 0}
 --- !u!1 &719907622
 GameObject:
   m_ObjectHideFlags: 0
@@ -3272,6 +3292,7 @@ GameObject:
   - component: {fileID: 1140093797}
   - component: {fileID: 1140093796}
   - component: {fileID: 1140093799}
+  - component: {fileID: 1140093800}
   m_Layer: 5
   m_Name: MainMenuButton
   m_TagString: Untagged
@@ -3343,7 +3364,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1140093797}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1415708228}
+        m_TargetAssemblyTypeName: ResultScreenUI, Assembly-CSharp
+        m_MethodName: GoToMainMenu
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1140093797
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3394,12 +3427,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f27ce4bda0e7b154da5f5155a9fc8544, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  target: {fileID: 0}
+  target: {fileID: 1140093795}
   normalScale: 1
   selectedScale: 1.12
   pressedScale: 0.92
   scaleSpeed: 16
   borderVisual: {fileID: 0}
+--- !u!114 &1140093800
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1140093794}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fae7973f0b41eef4c8aa787537f0b36c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  normalScale: 1
+  hoverScale: 1.12
+  clickScale: 0.92
+  tweenSpeed: 14
+  audioSource: {fileID: 0}
+  hoverSound: {fileID: 0}
+  clickSound: {fileID: 0}
 --- !u!1 &1253827635
 GameObject:
   m_ObjectHideFlags: 0
@@ -4342,6 +4394,7 @@ GameObject:
   - component: {fileID: 1749031337}
   - component: {fileID: 1749031336}
   - component: {fileID: 1749031339}
+  - component: {fileID: 1749031340}
   m_Layer: 5
   m_Name: RetryButton
   m_TagString: Untagged
@@ -4413,7 +4466,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1749031337}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1415708228}
+        m_TargetAssemblyTypeName: ResultScreenUI, Assembly-CSharp
+        m_MethodName: Retry
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1749031337
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4464,12 +4529,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f27ce4bda0e7b154da5f5155a9fc8544, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  target: {fileID: 0}
+  target: {fileID: 1749031335}
   normalScale: 1
   selectedScale: 1.12
   pressedScale: 0.92
   scaleSpeed: 16
   borderVisual: {fileID: 0}
+--- !u!114 &1749031340
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1749031334}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fae7973f0b41eef4c8aa787537f0b36c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  normalScale: 1
+  hoverScale: 1.12
+  clickScale: 0.92
+  tweenSpeed: 14
+  audioSource: {fileID: 0}
+  hoverSound: {fileID: 0}
+  clickSound: {fileID: 0}
 --- !u!1 &1751874254
 GameObject:
   m_ObjectHideFlags: 0
