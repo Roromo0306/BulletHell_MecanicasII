@@ -2331,7 +2331,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 89bf128d09fcce34e8c89d82212a90f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cinematicSceneName: IntroCinematic
+  cinematicSceneName: Lvl1
   mainMenuCanvasGroup: {fileID: 665093509}
   title: {fileID: 424544558}
   buttonsRoot: {fileID: 1190736911}

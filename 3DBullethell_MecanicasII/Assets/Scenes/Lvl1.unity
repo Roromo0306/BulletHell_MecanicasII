@@ -1855,7 +1855,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6bc9be1ace6bd74a8cedb6bb9a13729, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bossName: Between Two Tides
+  bossName: Between Two Twides
   bossRoot: {fileID: 1424033085}
   hideBossUntilIntroEnds: 0
   bossBehavioursToEnable:

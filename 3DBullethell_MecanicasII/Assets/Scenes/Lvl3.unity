@@ -1785,7 +1785,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f27ce4bda0e7b154da5f5155a9fc8544, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  selectionBorder: {fileID: 817851991}
+  target: {fileID: 0}
+  normalScale: 1
+  selectedScale: 1.12
+  pressedScale: 0.92
+  scaleSpeed: 16
+  borderVisual: {fileID: 0}
 --- !u!1 &719907622
 GameObject:
   m_ObjectHideFlags: 0
@@ -3053,7 +3058,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f27ce4bda0e7b154da5f5155a9fc8544, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  selectionBorder: {fileID: 932670212}
+  target: {fileID: 0}
+  normalScale: 1
+  selectedScale: 1.12
+  pressedScale: 0.92
+  scaleSpeed: 16
+  borderVisual: {fileID: 0}
 --- !u!1 &1253827635
 GameObject:
   m_ObjectHideFlags: 0
@@ -3456,17 +3466,32 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   resultPanel: {fileID: 1714291238}
-  panelCanvasGroup: {fileID: 1714291242}
-  resultTitle: {fileID: 239839074}
-  nextButton: {fileID: 716501349}
-  retryButton: {fileID: 1749031334}
-  mainMenuButton: {fileID: 1140093794}
-  fadeDuration: 0.35
-  titlePopDuration: 0.45
-  buttonPopDuration: 0.28
-  delayBetweenButtons: 0.18
-  nextSceneName: Lvl3
+  canvasGroup: {fileID: 1714291242}
+  panelRoot: {fileID: 1714291239}
+  titleText: {fileID: 0}
+  descriptionText: {fileID: 0}
+  titleTMP: {fileID: 239839074}
+  descriptionTMP: {fileID: 0}
+  winTitle: YOU WIN
+  loseTitle: YOU LOSE
+  winDescription: 
+  loseDescription: 
+  buttons:
+  - {fileID: 716501351}
+  - {fileID: 1749031336}
+  - {fileID: 1140093796}
+  verticalAxis: Vertical
+  deadZone: 0.45
+  moveCooldown: 0.22
+  submitButton: 331
+  submitKeyboard: 13
+  nextSceneName: MainMenu
   mainMenuSceneName: MainMenu
+  showDuration: 0.35
+  hideDuration: 0.2
+  hiddenScale: 0.75
+  visibleScale: 1
+  pauseGameOnShow: 1
 --- !u!1 &1444540915
 GameObject:
   m_ObjectHideFlags: 0
@@ -4211,7 +4236,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f27ce4bda0e7b154da5f5155a9fc8544, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  selectionBorder: {fileID: 1753538880}
+  target: {fileID: 0}
+  normalScale: 1
+  selectedScale: 1.12
+  pressedScale: 0.92
+  scaleSpeed: 16
+  borderVisual: {fileID: 0}
 --- !u!1 &1751874254
 GameObject:
   m_ObjectHideFlags: 0
