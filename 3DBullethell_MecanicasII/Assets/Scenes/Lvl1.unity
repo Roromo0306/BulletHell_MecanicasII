@@ -1318,6 +1318,7 @@ GameObject:
   - component: {fileID: 716501352}
   - component: {fileID: 716501351}
   - component: {fileID: 716501354}
+  - component: {fileID: 716501355}
   m_Layer: 5
   m_Name: NextButton
   m_TagString: Untagged
@@ -1440,7 +1441,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f27ce4bda0e7b154da5f5155a9fc8544, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  selectionBorder: {fileID: 817851991}
+  target: {fileID: 716501350}
+  normalScale: 1
+  selectedScale: 1.12
+  pressedScale: 0.92
+  scaleSpeed: 16
+  borderVisual: {fileID: 0}
+--- !u!114 &716501355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 716501349}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fae7973f0b41eef4c8aa787537f0b36c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  normalScale: 1
+  hoverScale: 1.12
+  clickScale: 0.92
+  tweenSpeed: 14
+  audioSource: {fileID: 0}
+  hoverSound: {fileID: 0}
+  clickSound: {fileID: 0}
 --- !u!1 &817851991
 GameObject:
   m_ObjectHideFlags: 0
@@ -2430,6 +2455,7 @@ GameObject:
   - component: {fileID: 1140093797}
   - component: {fileID: 1140093796}
   - component: {fileID: 1140093799}
+  - component: {fileID: 1140093800}
   m_Layer: 5
   m_Name: MainMenuButton
   m_TagString: Untagged
@@ -2552,7 +2578,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f27ce4bda0e7b154da5f5155a9fc8544, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  selectionBorder: {fileID: 932670212}
+  target: {fileID: 1140093795}
+  normalScale: 1
+  selectedScale: 1.12
+  pressedScale: 0.92
+  scaleSpeed: 16
+  borderVisual: {fileID: 0}
+--- !u!114 &1140093800
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1140093794}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fae7973f0b41eef4c8aa787537f0b36c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  normalScale: 1
+  hoverScale: 1.12
+  clickScale: 0.92
+  tweenSpeed: 14
+  audioSource: {fileID: 0}
+  hoverSound: {fileID: 0}
+  clickSound: {fileID: 0}
 --- !u!1 &1253827635
 GameObject:
   m_ObjectHideFlags: 0
@@ -2956,17 +3006,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   resultPanel: {fileID: 1714291238}
-  panelCanvasGroup: {fileID: 1714291242}
-  resultTitle: {fileID: 239839074}
-  nextButton: {fileID: 716501349}
-  retryButton: {fileID: 1749031334}
-  mainMenuButton: {fileID: 1140093794}
-  fadeDuration: 0.35
-  titlePopDuration: 0.45
-  buttonPopDuration: 0.28
-  delayBetweenButtons: 0.18
+  titleText: {fileID: 0}
+  descriptionText: {fileID: 0}
+  winTitle: YOU WIN
+  loseTitle: YOU LOSE
+  winDescription: DOIFJAIOF
+  loseDescription: Adsfnsjd
+  buttons: []
+  verticalAxis: Vertical
+  deadZone: 0.45
+  moveCooldown: 0.22
+  submitButton: 331
+  submitKeyboard: 13
   nextSceneName: Lvl2
   mainMenuSceneName: MainMenu
+  pauseGameOnShow: 1
 --- !u!1 &1424033085
 GameObject:
   m_ObjectHideFlags: 0
@@ -3662,6 +3716,7 @@ GameObject:
   - component: {fileID: 1749031337}
   - component: {fileID: 1749031336}
   - component: {fileID: 1749031339}
+  - component: {fileID: 1749031340}
   m_Layer: 5
   m_Name: RetryButton
   m_TagString: Untagged
@@ -3784,7 +3839,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f27ce4bda0e7b154da5f5155a9fc8544, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  selectionBorder: {fileID: 1753538880}
+  target: {fileID: 1749031335}
+  normalScale: 1
+  selectedScale: 1.12
+  pressedScale: 0.92
+  scaleSpeed: 16
+  borderVisual: {fileID: 0}
+--- !u!114 &1749031340
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1749031334}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fae7973f0b41eef4c8aa787537f0b36c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  normalScale: 1
+  hoverScale: 1.12
+  clickScale: 0.92
+  tweenSpeed: 14
+  audioSource: {fileID: 0}
+  hoverSound: {fileID: 0}
+  clickSound: {fileID: 0}
 --- !u!1 &1751874254
 GameObject:
   m_ObjectHideFlags: 0

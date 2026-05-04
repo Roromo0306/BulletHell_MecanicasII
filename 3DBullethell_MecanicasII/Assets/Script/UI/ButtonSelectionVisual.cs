@@ -1,26 +1,88 @@
+using System.Collections;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class ButtonSelectionVisual : MonoBehaviour
 {
-    public GameObject selectionBorder;
-    private Button button;
+    [Header("Target")]
+    public RectTransform target;
+
+    [Header("Scale")]
+    public float normalScale = 1f;
+    public float selectedScale = 1.12f;
+    public float pressedScale = 0.92f;
+    public float scaleSpeed = 16f;
+
+    [Header("Old Border - Optional")]
+    public GameObject borderVisual;
+
+    private Coroutine scaleRoutine;
+    private bool selected;
 
     private void Awake()
     {
-        button = GetComponent<Button>();
+        if (target == null)
+            target = GetComponent<RectTransform>();
 
-        if (selectionBorder != null)
-            selectionBorder.SetActive(false);
+        if (borderVisual != null)
+            borderVisual.SetActive(false);
+
+        if (target != null)
+            target.localScale = Vector3.one * normalScale;
     }
 
-    private void Update()
+    public void SetSelected(bool value)
     {
-        if (button == null || selectionBorder == null)
-            return;
+        selected = value;
 
-        bool isSelected = button.gameObject == UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject;
+        // Apagamos siempre el reborde viejo
+        if (borderVisual != null)
+            borderVisual.SetActive(false);
 
-        selectionBorder.SetActive(isSelected);
+        ScaleTo(selected ? selectedScale : normalScale);
+    }
+
+    public void PlayPressedFeedback()
+    {
+        if (!gameObject.activeInHierarchy) return;
+
+        StartCoroutine(PressedRoutine());
+    }
+
+    private IEnumerator PressedRoutine()
+    {
+        ScaleTo(pressedScale);
+
+        yield return new WaitForSecondsRealtime(0.08f);
+
+        ScaleTo(selected ? selectedScale : normalScale);
+    }
+
+    private void ScaleTo(float scale)
+    {
+        if (target == null) return;
+
+        if (scaleRoutine != null)
+            StopCoroutine(scaleRoutine);
+
+        scaleRoutine = StartCoroutine(ScaleRoutine(scale));
+    }
+
+    private IEnumerator ScaleRoutine(float scale)
+    {
+        Vector3 targetScale = Vector3.one * scale;
+
+        while (Vector3.Distance(target.localScale, targetScale) > 0.01f)
+        {
+            target.localScale = Vector3.Lerp(
+                target.localScale,
+                targetScale,
+                Time.unscaledDeltaTime * scaleSpeed
+            );
+
+            yield return null;
+        }
+
+        target.localScale = targetScale;
+        scaleRoutine = null;
     }
 }

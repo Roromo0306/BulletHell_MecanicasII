@@ -1,229 +1,236 @@
-using System.Collections;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using TMPro;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
 public class ResultScreenUI : MonoBehaviour
 {
-    [Header("Main References")]
+    [Header("Panel único")]
     public GameObject resultPanel;
-    public CanvasGroup panelCanvasGroup;
-    public TextMeshProUGUI resultTitle;
 
-    [Header("Buttons")]
-    public GameObject nextButton;
-    public GameObject retryButton;
-    public GameObject mainMenuButton;
+    [Header("Textos opcionales")]
+    public Text titleText;
+    public Text descriptionText;
 
-    [Header("Animation")]
-    public float fadeDuration = 0.35f;
-    public float titlePopDuration = 0.45f;
-    public float buttonPopDuration = 0.28f;
-    public float delayBetweenButtons = 0.18f;
+    [Header("Texto Win / Lose")]
+    public string winTitle = "YOU WIN";
+    public string loseTitle = "YOU LOSE";
+    public string winDescription = "";
+    public string loseDescription = "";
 
-    [Header("Scenes")]
-    public string nextSceneName = "NextLevel";
+    [Header("Botones del panel")]
+    public Button[] buttons;
+
+    [Header("Navegación mando")]
+    public string verticalAxis = "Vertical";
+    public float deadZone = 0.45f;
+    public float moveCooldown = 0.22f;
+
+    [Header("Confirmar")]
+    public KeyCode submitButton = KeyCode.JoystickButton1;
+    public KeyCode submitKeyboard = KeyCode.Return;
+
+    [Header("Escenas")]
+    public string nextSceneName = "LV2";
     public string mainMenuSceneName = "MainMenu";
 
+    [Header("Opciones")]
+    public bool pauseGameOnShow = true;
+
+    private int currentIndex;
+    private float nextMoveTime;
     private bool isShowing;
+    private bool playerWon;
 
     private void Awake()
     {
         if (resultPanel != null)
             resultPanel.SetActive(false);
 
-        HideButtonInstant(nextButton);
-        HideButtonInstant(retryButton);
-        HideButtonInstant(mainMenuButton);
+        isShowing = false;
+    }
+
+    private void Update()
+    {
+        if (!isShowing) return;
+
+        HandleNavigation();
+        HandleSubmit();
     }
 
     public void ShowWin()
     {
-        if (isShowing) return;
-
-        isShowing = true;
-        StartCoroutine(ShowResultRoutine("YOU WIN", true));
+        ShowResult(true);
     }
 
     public void ShowLose()
     {
-        if (isShowing) return;
+        ShowResult(false);
+    }
 
+    private void ShowResult(bool won)
+    {
+        playerWon = won;
         isShowing = true;
-        StartCoroutine(ShowResultRoutine("YOU LOSE", false));
+
+        if (pauseGameOnShow)
+            Time.timeScale = 0f;
+
+        if (resultPanel != null)
+            resultPanel.SetActive(true);
+
+        if (titleText != null)
+            titleText.text = won ? winTitle : loseTitle;
+
+        if (descriptionText != null)
+            descriptionText.text = won ? winDescription : loseDescription;
+
+        currentIndex = 0;
+        SelectCurrentButton();
     }
 
-    private IEnumerator ShowResultRoutine(string titleText, bool win)
+    private void HandleNavigation()
     {
-        Time.timeScale = 0f;
+        if (buttons == null || buttons.Length == 0) return;
 
-        resultPanel.SetActive(true);
+        float vertical = Input.GetAxisRaw(verticalAxis);
 
-        if (panelCanvasGroup != null)
-        {
-            panelCanvasGroup.alpha = 0f;
-            panelCanvasGroup.interactable = true;
-            panelCanvasGroup.blocksRaycasts = true;
-        }
+        if (Mathf.Abs(vertical) < deadZone)
+            return;
 
-        resultTitle.text = titleText;
-        resultTitle.transform.localScale = Vector3.zero;
+        if (Time.unscaledTime < nextMoveTime)
+            return;
 
-        HideButtonInstant(nextButton);
-        HideButtonInstant(retryButton);
-        HideButtonInstant(mainMenuButton);
+        if (vertical > 0f)
+            MoveSelection(-1);
+        else if (vertical < 0f)
+            MoveSelection(1);
 
-        yield return StartCoroutine(FadePanel());
-
-        yield return StartCoroutine(PopTransform(resultTitle.transform, titlePopDuration, 1.25f));
-
-        yield return new WaitForSecondsRealtime(0.2f);
-
-        if (win)
-        {
-            yield return StartCoroutine(ShowButton(nextButton));
-            SelectButton(nextButton);
-        }
-        else
-        {
-            yield return StartCoroutine(ShowButton(retryButton));
-            SelectButton(retryButton);
-
-            yield return new WaitForSecondsRealtime(delayBetweenButtons);
-
-            yield return StartCoroutine(ShowButton(mainMenuButton));
-        }
+        nextMoveTime = Time.unscaledTime + moveCooldown;
     }
 
-    private IEnumerator FadePanel()
+    private void MoveSelection(int direction)
     {
-        if (panelCanvasGroup == null)
-            yield break;
+        if (buttons == null || buttons.Length == 0) return;
 
-        float timer = 0f;
+        currentIndex += direction;
 
-        while (timer < fadeDuration)
-        {
-            timer += Time.unscaledDeltaTime;
-            float t = timer / fadeDuration;
+        if (currentIndex < 0)
+            currentIndex = buttons.Length - 1;
 
-            panelCanvasGroup.alpha = Mathf.Lerp(0f, 1f, Smooth(t));
+        if (currentIndex >= buttons.Length)
+            currentIndex = 0;
 
-            yield return null;
-        }
-
-        panelCanvasGroup.alpha = 1f;
+        SelectCurrentButton();
     }
 
-    private IEnumerator ShowButton(GameObject button)
+    private void SelectCurrentButton()
     {
-        if (button == null) yield break;
+        if (buttons == null || buttons.Length == 0) return;
 
-        button.SetActive(true);
-        button.transform.localScale = Vector3.zero;
+        Button selectedButton = buttons[currentIndex];
 
-        CanvasGroup canvasGroup = button.GetComponent<CanvasGroup>();
+        if (selectedButton == null) return;
 
-        if (canvasGroup == null)
-            canvasGroup = button.AddComponent<CanvasGroup>();
-
-        canvasGroup.alpha = 0f;
-
-        float timer = 0f;
-
-        while (timer < buttonPopDuration)
+        if (EventSystem.current != null)
         {
-            timer += Time.unscaledDeltaTime;
-            float t = timer / buttonPopDuration;
-            float smooth = Smooth(t);
-
-            canvasGroup.alpha = smooth;
-
-            float scale = PopValue(t, 1.15f);
-            button.transform.localScale = Vector3.one * scale;
-
-            yield return null;
+            EventSystem.current.SetSelectedGameObject(null);
+            EventSystem.current.SetSelectedGameObject(selectedButton.gameObject);
         }
 
-        canvasGroup.alpha = 1f;
-        button.transform.localScale = Vector3.one;
+        selectedButton.Select();
     }
 
-    private IEnumerator PopTransform(Transform target, float duration, float overshoot)
+    private void HandleSubmit()
     {
-        float timer = 0f;
+        if (!Input.GetKeyDown(submitButton) && !Input.GetKeyDown(submitKeyboard))
+            return;
 
-        while (timer < duration)
+        if (buttons == null || buttons.Length == 0) return;
+
+        Button selectedButton = buttons[currentIndex];
+
+        if (selectedButton == null) return;
+
+        if (EventSystem.current != null)
         {
-            timer += Time.unscaledDeltaTime;
-            float t = timer / duration;
-
-            float scale = PopValue(t, overshoot);
-            target.localScale = Vector3.one * scale;
-
-            yield return null;
-        }
-
-        target.localScale = Vector3.one;
-    }
-
-    private float PopValue(float t, float overshoot)
-    {
-        if (t < 0.7f)
-        {
-            float p = t / 0.7f;
-            return Mathf.Lerp(0f, overshoot, Smooth(p));
+            ExecuteEvents.Execute<ISubmitHandler>(
+                selectedButton.gameObject,
+                new BaseEventData(EventSystem.current),
+                ExecuteEvents.submitHandler
+            );
         }
         else
         {
-            float p = (t - 0.7f) / 0.3f;
-            return Mathf.Lerp(overshoot, 1f, Smooth(p));
+            selectedButton.onClick.Invoke();
         }
-    }
-
-    private float Smooth(float t)
-    {
-        return t * t * (3f - 2f * t);
-    }
-
-    private void HideButtonInstant(GameObject button)
-    {
-        if (button == null) return;
-
-        button.SetActive(false);
-        button.transform.localScale = Vector3.zero;
-
-        CanvasGroup canvasGroup = button.GetComponent<CanvasGroup>();
-
-        if (canvasGroup != null)
-            canvasGroup.alpha = 0f;
-    }
-
-    private void SelectButton(GameObject button)
-    {
-        if (button == null) return;
-
-        EventSystem.current.SetSelectedGameObject(null);
-        EventSystem.current.SetSelectedGameObject(button);
     }
 
     public void Retry()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+
+        string currentScene = SceneManager.GetActiveScene().name;
+        LoadScene(currentScene);
     }
 
-    public void Next()
+    public void Restart()
     {
-        Time.timeScale = 1f;
-        SceneManager.LoadScene(nextSceneName);
+        Retry();
     }
 
-    public void MainMenu()
+    public void GoToNextScene()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene(mainMenuSceneName);
+
+        if (string.IsNullOrEmpty(nextSceneName))
+        {
+            Debug.LogWarning("No hay Next Scene Name asignado en ResultScreenUI.");
+            return;
+        }
+
+        LoadScene(nextSceneName);
+    }
+
+    public void NextLevel()
+    {
+        GoToNextScene();
+    }
+
+    public void Continue()
+    {
+        GoToNextScene();
+    }
+
+    public void GoToMainMenu()
+    {
+        Time.timeScale = 1f;
+        LoadScene(mainMenuSceneName);
+    }
+
+    public void GoToMenu()
+    {
+        GoToMainMenu();
+    }
+
+    public void QuitGame()
+    {
+        Time.timeScale = 1f;
+
+        Debug.Log("Cerrar juego");
+
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
+    }
+
+    private void LoadScene(string sceneName)
+    {
+        if (SceneTransitionManager.Instance != null)
+            SceneTransitionManager.Instance.LoadScene(sceneName);
+        else
+            SceneManager.LoadScene(sceneName);
     }
 }

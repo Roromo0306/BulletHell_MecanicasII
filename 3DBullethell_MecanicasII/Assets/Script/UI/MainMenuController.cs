@@ -267,7 +267,7 @@ public class MainMenuController : MonoBehaviour
 
         yield return new WaitForSecondsRealtime(0.15f);
 
-        SceneManager.LoadScene(sceneName);
+        SceneTransitionManager.Instance.LoadScene(sceneName);
     }
 
     public void OpenCredits()
