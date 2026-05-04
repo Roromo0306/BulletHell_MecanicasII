@@ -858,6 +858,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   damageVignette: {fileID: 1707550900}
   cameraShake: {fileID: 963194231}
+  bubbleShieldController: {fileID: 0}
   invulnerabilityDuration: 1
   visualRoot: {fileID: 645070824}
   maxHearts: 5
@@ -2964,7 +2965,7 @@ MonoBehaviour:
   titlePopDuration: 0.45
   buttonPopDuration: 0.28
   delayBetweenButtons: 0.18
-  nextSceneName: NextLevel
+  nextSceneName: Lvl2
   mainMenuSceneName: MainMenu
 --- !u!1 &1424033085
 GameObject:
