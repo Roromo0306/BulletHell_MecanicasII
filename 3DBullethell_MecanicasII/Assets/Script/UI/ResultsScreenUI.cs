@@ -1,16 +1,24 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 public class ResultScreenUI : MonoBehaviour
 {
     [Header("Panel único")]
     public GameObject resultPanel;
+    public CanvasGroup canvasGroup;
+    public RectTransform panelRoot;
 
-    [Header("Textos opcionales")]
+    [Header("Textos opcionales - UI Text")]
     public Text titleText;
     public Text descriptionText;
+
+    [Header("Textos opcionales - TextMeshPro")]
+    public TextMeshProUGUI titleTMP;
+    public TextMeshProUGUI descriptionTMP;
 
     [Header("Texto Win / Lose")]
     public string winTitle = "YOU WIN";
@@ -18,7 +26,7 @@ public class ResultScreenUI : MonoBehaviour
     public string winDescription = "";
     public string loseDescription = "";
 
-    [Header("Botones del panel")]
+    [Header("Botones")]
     public Button[] buttons;
 
     [Header("Navegación mando")]
@@ -34,25 +42,38 @@ public class ResultScreenUI : MonoBehaviour
     public string nextSceneName = "LV2";
     public string mainMenuSceneName = "MainMenu";
 
+    [Header("Animación")]
+    public float showDuration = 0.35f;
+    public float hideDuration = 0.2f;
+    public float hiddenScale = 0.75f;
+    public float visibleScale = 1f;
+
     [Header("Opciones")]
     public bool pauseGameOnShow = true;
 
     private int currentIndex;
     private float nextMoveTime;
     private bool isShowing;
-    private bool playerWon;
+    private bool inputLocked;
 
     private void Awake()
     {
-        if (resultPanel != null)
-            resultPanel.SetActive(false);
+        if (canvasGroup == null && resultPanel != null)
+            canvasGroup = resultPanel.GetComponent<CanvasGroup>();
 
-        isShowing = false;
+        if (canvasGroup == null && resultPanel != null)
+            canvasGroup = resultPanel.AddComponent<CanvasGroup>();
+
+        if (panelRoot == null && resultPanel != null)
+            panelRoot = resultPanel.GetComponent<RectTransform>();
+
+        HideInstant();
     }
 
     private void Update()
     {
         if (!isShowing) return;
+        if (inputLocked) return;
 
         HandleNavigation();
         HandleSubmit();
@@ -70,23 +91,108 @@ public class ResultScreenUI : MonoBehaviour
 
     private void ShowResult(bool won)
     {
-        playerWon = won;
+        if (isShowing) return;
+
         isShowing = true;
+        inputLocked = true;
 
         if (pauseGameOnShow)
             Time.timeScale = 0f;
 
+        SetTexts(won);
+        StartCoroutine(ShowRoutine());
+    }
+
+    private void SetTexts(bool won)
+    {
+        string title = won ? winTitle : loseTitle;
+        string description = won ? winDescription : loseDescription;
+
+        if (titleText != null)
+            titleText.text = title;
+
+        if (descriptionText != null)
+            descriptionText.text = description;
+
+        if (titleTMP != null)
+            titleTMP.text = title;
+
+        if (descriptionTMP != null)
+            descriptionTMP.text = description;
+    }
+
+    private IEnumerator ShowRoutine()
+    {
         if (resultPanel != null)
             resultPanel.SetActive(true);
 
-        if (titleText != null)
-            titleText.text = won ? winTitle : loseTitle;
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 0f;
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
+        }
 
-        if (descriptionText != null)
-            descriptionText.text = won ? winDescription : loseDescription;
+        if (panelRoot != null)
+            panelRoot.localScale = Vector3.one * hiddenScale;
+
+        float timer = 0f;
+
+        while (timer < showDuration)
+        {
+            timer += Time.unscaledDeltaTime;
+
+            float t = timer / showDuration;
+            t = EaseOutBack(t);
+
+            if (canvasGroup != null)
+                canvasGroup.alpha = Mathf.Lerp(0f, 1f, t);
+
+            if (panelRoot != null)
+            {
+                panelRoot.localScale = Vector3.LerpUnclamped(
+                    Vector3.one * hiddenScale,
+                    Vector3.one * visibleScale,
+                    t
+                );
+            }
+
+            yield return null;
+        }
+
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 1f;
+            canvasGroup.interactable = true;
+            canvasGroup.blocksRaycasts = true;
+        }
+
+        if (panelRoot != null)
+            panelRoot.localScale = Vector3.one * visibleScale;
 
         currentIndex = 0;
+        inputLocked = false;
+
         SelectCurrentButton();
+    }
+
+    private void HideInstant()
+    {
+        isShowing = false;
+        inputLocked = false;
+
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 0f;
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
+        }
+
+        if (panelRoot != null)
+            panelRoot.localScale = Vector3.one * hiddenScale;
+
+        if (resultPanel != null)
+            resultPanel.SetActive(false);
     }
 
     private void HandleNavigation()
@@ -152,6 +258,12 @@ public class ResultScreenUI : MonoBehaviour
 
         if (selectedButton == null) return;
 
+        StartCoroutine(SubmitButtonRoutine(selectedButton));
+    }
+    private IEnumerator SubmitButtonRoutine(Button selectedButton)
+    {
+        inputLocked = true;
+
         if (EventSystem.current != null)
         {
             ExecuteEvents.Execute<ISubmitHandler>(
@@ -160,10 +272,12 @@ public class ResultScreenUI : MonoBehaviour
                 ExecuteEvents.submitHandler
             );
         }
-        else
-        {
-            selectedButton.onClick.Invoke();
-        }
+
+        yield return new WaitForSecondsRealtime(0.12f);
+
+        selectedButton.onClick.Invoke();
+
+        inputLocked = false;
     }
 
     public void Retry()
@@ -185,7 +299,7 @@ public class ResultScreenUI : MonoBehaviour
 
         if (string.IsNullOrEmpty(nextSceneName))
         {
-            Debug.LogWarning("No hay Next Scene Name asignado en ResultScreenUI.");
+            Debug.LogWarning("ResultScreenUI: no hay Next Scene Name asignado.");
             return;
         }
 
@@ -232,5 +346,13 @@ public class ResultScreenUI : MonoBehaviour
             SceneTransitionManager.Instance.LoadScene(sceneName);
         else
             SceneManager.LoadScene(sceneName);
+    }
+
+    private float EaseOutBack(float t)
+    {
+        float c1 = 1.70158f;
+        float c3 = c1 + 1f;
+
+        return 1f + c3 * Mathf.Pow(t - 1f, 3f) + c1 * Mathf.Pow(t - 1f, 2f);
     }
 }
