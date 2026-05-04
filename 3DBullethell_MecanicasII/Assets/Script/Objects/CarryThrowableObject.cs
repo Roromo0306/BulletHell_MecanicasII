@@ -22,6 +22,9 @@ public class CarryThrowableObject : MonoBehaviour
     public float throwArcHeight = 4f;
     public bool useGravityOnThrow = true;
 
+    [Header("Impact Safety")]
+    public float impactDelay = 0.15f;
+
     [Header("Boomerang Anchor")]
     public float boomerangSpeed = 9f;
     public float boomerangReturnSpeed = 11f;
@@ -43,10 +46,16 @@ public class CarryThrowableObject : MonoBehaviour
 
     private Rigidbody rb;
     private Collider col;
+    private Collider[] objectColliders;
     private CarryObjectSpawner spawner;
 
     private bool isHeld;
     private bool hasBeenThrown;
+    private bool canImpact;
+
+    private Transform throwOwner;
+    private Collider[] ownerColliders;
+
     private int facingDirection = 1;
 
     private readonly List<GameObject> alreadyHitBosses = new List<GameObject>();
@@ -57,6 +66,7 @@ public class CarryThrowableObject : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         col = GetComponent<Collider>();
+        objectColliders = GetComponentsInChildren<Collider>(true);
 
         if (visual == null)
             visual = transform;
@@ -92,9 +102,13 @@ public class CarryThrowableObject : MonoBehaviour
     {
         isHeld = true;
         hasBeenThrown = false;
+        canImpact = false;
         alreadyHitBosses.Clear();
 
         CancelInvoke();
+        StopAllCoroutines();
+
+        ClearOwnerCollisionIgnore();
 
         if (rb != null)
         {
@@ -125,9 +139,21 @@ public class CarryThrowableObject : MonoBehaviour
 
     public void Throw(Vector3 direction, float charge01, Transform returnTarget = null)
     {
+        throwOwner = returnTarget;
+
+        if (throwOwner == null)
+        {
+            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+
+            if (playerObj != null)
+                throwOwner = playerObj.transform;
+        }
+
+        SetupOwnerCollisionIgnore();
+
         if (throwableType == ThrowableType.Anchor)
         {
-            ThrowAnchorBoomerang(direction, charge01, returnTarget);
+            ThrowAnchorBoomerang(direction, charge01, throwOwner);
             return;
         }
 
@@ -138,6 +164,7 @@ public class CarryThrowableObject : MonoBehaviour
     {
         isHeld = false;
         hasBeenThrown = true;
+        canImpact = false;
         alreadyHitBosses.Clear();
 
         transform.SetParent(null);
@@ -160,6 +187,7 @@ public class CarryThrowableObject : MonoBehaviour
             rb.angularVelocity = Vector3.zero;
         }
 
+        StartCoroutine(EnableImpactAfterDelay());
         Invoke(nameof(Impact), destroyAfterSeconds);
     }
 
@@ -167,16 +195,10 @@ public class CarryThrowableObject : MonoBehaviour
     {
         isHeld = false;
         hasBeenThrown = true;
+        canImpact = false;
         alreadyHitBosses.Clear();
 
         transform.SetParent(null);
-
-        if (returnTarget == null)
-        {
-            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-            if (playerObj != null)
-                returnTarget = playerObj.transform;
-        }
 
         if (rb != null)
         {
@@ -192,7 +214,14 @@ public class CarryThrowableObject : MonoBehaviour
             col.isTrigger = true;
         }
 
+        StartCoroutine(EnableImpactAfterDelay());
         StartCoroutine(AnchorBoomerangRoutine(direction.normalized, charge01, returnTarget));
+    }
+
+    private IEnumerator EnableImpactAfterDelay()
+    {
+        yield return new WaitForSeconds(impactDelay);
+        canImpact = true;
     }
 
     private IEnumerator AnchorBoomerangRoutine(Vector3 direction, float charge01, Transform returnTarget)
@@ -254,6 +283,12 @@ public class CarryThrowableObject : MonoBehaviour
         if (!hasBeenThrown) return;
         if (throwableType == ThrowableType.Anchor) return;
 
+        if (IsPlayerCollider(collision.collider))
+            return;
+
+        if (!canImpact)
+            return;
+
         Impact();
     }
 
@@ -262,7 +297,26 @@ public class CarryThrowableObject : MonoBehaviour
         if (!hasBeenThrown) return;
         if (throwableType != ThrowableType.Anchor) return;
 
+        if (IsPlayerCollider(other))
+            return;
+
+        if (!canImpact)
+            return;
+
         DamageBossFromCollider(other);
+    }
+
+    private bool IsPlayerCollider(Collider other)
+    {
+        if (other == null) return false;
+
+        if (other.GetComponentInParent<PlayerHealth>() != null)
+            return true;
+
+        if (other.GetComponentInParent<PlayerMovement>() != null)
+            return true;
+
+        return false;
     }
 
     private void Impact()
@@ -327,11 +381,57 @@ public class CarryThrowableObject : MonoBehaviour
         if (!hasBeenThrown) return;
 
         hasBeenThrown = false;
+        canImpact = false;
+
         CancelInvoke();
+        ClearOwnerCollisionIgnore();
 
         if (spawner != null)
             spawner.StartRespawnTimer();
 
         Destroy(gameObject);
+    }
+
+    private void SetupOwnerCollisionIgnore()
+    {
+        if (throwOwner == null)
+            return;
+
+        ownerColliders = throwOwner.GetComponentsInChildren<Collider>();
+
+        if (ownerColliders == null || objectColliders == null)
+            return;
+
+        foreach (Collider objectCollider in objectColliders)
+        {
+            if (objectCollider == null) continue;
+
+            foreach (Collider ownerCollider in ownerColliders)
+            {
+                if (ownerCollider == null) continue;
+
+                Physics.IgnoreCollision(objectCollider, ownerCollider, true);
+            }
+        }
+    }
+
+    private void ClearOwnerCollisionIgnore()
+    {
+        if (ownerColliders == null || objectColliders == null)
+            return;
+
+        foreach (Collider objectCollider in objectColliders)
+        {
+            if (objectCollider == null) continue;
+
+            foreach (Collider ownerCollider in ownerColliders)
+            {
+                if (ownerCollider == null) continue;
+
+                Physics.IgnoreCollision(objectCollider, ownerCollider, false);
+            }
+        }
+
+        ownerColliders = null;
     }
 }

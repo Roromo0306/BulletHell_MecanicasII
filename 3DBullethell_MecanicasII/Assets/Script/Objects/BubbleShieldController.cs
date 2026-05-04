@@ -53,6 +53,11 @@ public class BubbleShieldController : MonoBehaviour
         DisableShieldImmediate();
     }
 
+    private void OnDisable()
+    {
+        ForceStopShield();
+    }
+
     public void Activate()
     {
         Debug.Log("BubbleShieldController Activate()");
@@ -68,7 +73,11 @@ public class BubbleShieldController : MonoBehaviour
         isActive = true;
         blockDamageUntilTime = 0f;
 
-        SetVisualVisible(true);
+        if (visualRoot != null)
+            visualRoot.gameObject.SetActive(true);
+
+        SetRenderersVisible(true);
+        PlayParticles();
 
         if (shieldCollider != null)
             shieldCollider.enabled = true;
@@ -81,14 +90,15 @@ public class BubbleShieldController : MonoBehaviour
             timerFillUI.SetFill(1f);
         }
 
-        float timer = 0f;
+        float elapsed = 0f;
+        float nextBlinkTime = 0f;
         bool visible = true;
 
-        while (timer < duration)
+        while (elapsed < duration)
         {
-            timer += Time.unscaledDeltaTime;
+            elapsed += Time.unscaledDeltaTime;
 
-            float remaining = duration - timer;
+            float remaining = duration - elapsed;
             float fill = Mathf.Clamp01(remaining / duration);
 
             if (timerFillUI != null)
@@ -96,15 +106,23 @@ public class BubbleShieldController : MonoBehaviour
 
             if (remaining <= warningBlinkTime)
             {
-                visible = !visible;
-                SetVisualVisible(visible);
-
-                yield return new WaitForSecondsRealtime(blinkInterval);
+                if (Time.unscaledTime >= nextBlinkTime)
+                {
+                    visible = !visible;
+                    SetRenderersVisible(visible);
+                    nextBlinkTime = Time.unscaledTime + blinkInterval;
+                }
             }
             else
             {
-                yield return null;
+                if (!visible)
+                {
+                    visible = true;
+                    SetRenderersVisible(true);
+                }
             }
+
+            yield return null;
         }
 
         DisableShieldImmediate();
@@ -125,7 +143,7 @@ public class BubbleShieldController : MonoBehaviour
     {
         isActive = false;
 
-        // Esto evita que una bala haga daño en el mismo frame en el que rompe la pompa.
+        // Evita que la misma bala haga daño justo al romper la pompa.
         blockDamageUntilTime = Time.unscaledTime + damageGraceAfterPop;
 
         if (shieldCollider != null)
@@ -134,17 +152,25 @@ public class BubbleShieldController : MonoBehaviour
         if (popParticles != null)
             Instantiate(popParticles, transform.position, Quaternion.identity);
 
-        float timer = 0f;
+        if (visualRoot != null)
+            visualRoot.gameObject.SetActive(true);
+
+        float elapsed = 0f;
+        float nextBlinkTime = 0f;
         bool visible = true;
 
-        while (timer < hitBlinkTime)
+        while (elapsed < hitBlinkTime)
         {
-            timer += Time.unscaledDeltaTime;
+            elapsed += Time.unscaledDeltaTime;
 
-            visible = !visible;
-            SetVisualVisible(visible);
+            if (Time.unscaledTime >= nextBlinkTime)
+            {
+                visible = !visible;
+                SetRenderersVisible(visible);
+                nextBlinkTime = Time.unscaledTime + blinkInterval;
+            }
 
-            yield return new WaitForSecondsRealtime(blinkInterval);
+            yield return null;
         }
 
         DisableShieldImmediate();
@@ -158,37 +184,66 @@ public class BubbleShieldController : MonoBehaviour
         if (shieldCollider != null)
             shieldCollider.enabled = false;
 
-        SetVisualVisible(false);
+        SetRenderersVisible(false);
+        StopParticles();
+
+        if (visualRoot != null && visualRoot != transform)
+            visualRoot.gameObject.SetActive(false);
 
         if (timerFillUI != null)
             timerFillUI.Hide();
     }
 
-    private void SetVisualVisible(bool visible)
+    private void ForceStopShield()
     {
-        if (visualRoot != null && visualRoot != transform)
-            visualRoot.gameObject.SetActive(visible);
+        isActive = false;
 
-        if (renderers != null)
+        if (routine != null)
         {
-            foreach (Renderer r in renderers)
-            {
-                if (r != null)
-                    r.enabled = visible;
-            }
+            StopCoroutine(routine);
+            routine = null;
         }
 
-        if (particleSystems != null)
-        {
-            foreach (ParticleSystem ps in particleSystems)
-            {
-                if (ps == null) continue;
+        if (shieldCollider != null)
+            shieldCollider.enabled = false;
 
-                if (visible)
-                    ps.Play(true);
-                else
-                    ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-            }
+        SetRenderersVisible(false);
+        StopParticles();
+
+        if (timerFillUI != null)
+            timerFillUI.Hide();
+    }
+
+    private void SetRenderersVisible(bool visible)
+    {
+        if (renderers == null) return;
+
+        foreach (Renderer r in renderers)
+        {
+            if (r != null)
+                r.enabled = visible;
+        }
+    }
+
+    private void PlayParticles()
+    {
+        if (particleSystems == null) return;
+
+        foreach (ParticleSystem ps in particleSystems)
+        {
+            if (ps != null)
+                ps.Play(true);
+        }
+    }
+
+    private void StopParticles()
+    {
+        if (particleSystems == null) return;
+
+        foreach (ParticleSystem ps in particleSystems)
+        {
+            if (ps != null)
+                ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         }
     }
 
