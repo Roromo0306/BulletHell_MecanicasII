@@ -1721,8 +1721,8 @@ MonoBehaviour:
   - {fileID: 1944890765}
   - {fileID: 1654942604}
   - {fileID: 1711120543}
-  fullHeart: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
-  emptyHeart: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  fullHeart: {fileID: 21300000, guid: f5dcec12e33e5834e82c18f651eddb35, type: 3}
+  emptyHeart: {fileID: 21300000, guid: 9a18f6b335c706440b8871b60a7be2d5, type: 3}
 --- !u!114 &693286005
 MonoBehaviour:
   m_ObjectHideFlags: 0
