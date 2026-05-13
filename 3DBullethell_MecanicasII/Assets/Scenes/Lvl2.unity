@@ -1324,6 +1324,7 @@ GameObject:
   - component: {fileID: 469446259}
   - component: {fileID: 469446257}
   - component: {fileID: 469446264}
+  - component: {fileID: 469446265}
   m_Layer: 0
   m_Name: Boss2
   m_TagString: Untagged
@@ -1417,7 +1418,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: b0f52b3199550a1489f2ad1ffb04eae8, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1484,6 +1485,30 @@ MonoBehaviour:
   resultScreenUI: {fileID: 1415708228}
   deathExplosionPrefab: {fileID: 2053140162486756902, guid: 78716a1ea724e5542b4e73515285f69c, type: 3}
   deathExplosionPoint: {fileID: 0}
+--- !u!114 &469446265
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 469446256}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42c292e6c901dbd42a6beb146918b17b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player: {fileID: 457344797}
+  targetCamera: {fileID: 963194227}
+  bossRenderers:
+  - {fileID: 469446261}
+  activationScreenDistance: 0.18
+  depthMargin: 0.05
+  invertBehindCheck: 0
+  playerRevealOffset: {x: 0, y: 0.75, z: 0}
+  revealRadius: 0.12
+  revealSoftness: 0.035
+  minVisibleAmount: 0.35
+  fadeSpeed: 8
 --- !u!1 &501351450
 GameObject:
   m_ObjectHideFlags: 0
