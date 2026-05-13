@@ -4528,8 +4528,8 @@ MonoBehaviour:
   moveCooldown: 0.22
   submitButton: 331
   submitKeyboard: 13
-  nextSceneName: MainMenu
-  mainMenuSceneName: MainMenu
+  nextSceneName: Youjou
+  mainMenuSceneName: Youjou
   showDuration: 0.35
   hideDuration: 0.2
   hiddenScale: 0.75

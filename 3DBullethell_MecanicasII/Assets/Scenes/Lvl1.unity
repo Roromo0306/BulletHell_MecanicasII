@@ -4323,6 +4323,9 @@ MonoBehaviour:
   resultPanel: {fileID: 1714291238}
   canvasGroup: {fileID: 1714291242}
   panelRoot: {fileID: 1714291239}
+  useTreasureMapBeforeNextScene: 1
+  treasureMapSceneName: TreasureMap
+  treasureMapStage: 1
   titleText: {fileID: 0}
   descriptionText: {fileID: 0}
   titleTMP: {fileID: 239839074}

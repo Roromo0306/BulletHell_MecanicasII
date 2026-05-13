@@ -17,4 +17,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Lvl3.unity
     guid: 1751fef30943ba847b90e4cda71bf1b5
+  - enabled: 1
+    path: Assets/Scenes/Youjou.unity
+    guid: e378765fbf8e41a4d91f052ef7500656
+  - enabled: 1
+    path: Assets/Scenes/TreasureMap.unity
+    guid: cde87a7f43dc1e24ea6d4b645afd48ee
   m_configObjects: {}

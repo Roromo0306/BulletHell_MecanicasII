@@ -13,6 +13,11 @@ public class ResultScreenUI : MonoBehaviour
     public CanvasGroup canvasGroup;
     public RectTransform panelRoot;
 
+    [Header("Treasure Map")]
+    public bool useTreasureMapBeforeNextScene = false;
+    public string treasureMapSceneName = "TreasureMap";
+    public int treasureMapStage = 2;
+
     [Header("Textos opcionales - UI Text")]
     public Text titleText;
     public Text descriptionText;
@@ -383,7 +388,15 @@ public class ResultScreenUI : MonoBehaviour
             return;
         }
 
-        LoadScene(nextSceneName);
+        if (useTreasureMapBeforeNextScene)
+        {
+            TreasureMapRuntimeData.SetMapData(treasureMapStage, nextSceneName);
+            LoadScene(treasureMapSceneName);
+        }
+        else
+        {
+            LoadScene(nextSceneName);
+        }
     }
 
     public void NextLevel()

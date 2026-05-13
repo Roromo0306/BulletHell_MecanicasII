@@ -1715,7 +1715,6 @@ GameObject:
   - component: {fileID: 591521544}
   - component: {fileID: 591521541}
   - component: {fileID: 591521540}
-  - component: {fileID: 591521543}
   - component: {fileID: 591521542}
   m_Layer: 5
   m_Name: NextButton
@@ -1829,24 +1828,6 @@ MonoBehaviour:
   audioSource: {fileID: 0}
   hoverSound: {fileID: 0}
   clickSound: {fileID: 0}
---- !u!114 &591521543
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 591521539}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f27ce4bda0e7b154da5f5155a9fc8544, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  target: {fileID: 591521545}
-  normalScale: 1
-  selectedScale: 1.12
-  pressedScale: 0.92
-  scaleSpeed: 16
-  borderVisual: {fileID: 0}
 --- !u!222 &591521544
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2215,7 +2196,6 @@ GameObject:
   - component: {fileID: 644496198}
   - component: {fileID: 644496195}
   - component: {fileID: 644496194}
-  - component: {fileID: 644496197}
   - component: {fileID: 644496196}
   m_Layer: 5
   m_Name: MainMenuButton
@@ -2329,24 +2309,6 @@ MonoBehaviour:
   audioSource: {fileID: 0}
   hoverSound: {fileID: 0}
   clickSound: {fileID: 0}
---- !u!114 &644496197
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 644496193}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f27ce4bda0e7b154da5f5155a9fc8544, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  target: {fileID: 644496199}
-  normalScale: 1
-  selectedScale: 1.12
-  pressedScale: 0.92
-  scaleSpeed: 16
-  borderVisual: {fileID: 0}
 --- !u!222 &644496198
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -5144,6 +5106,9 @@ MonoBehaviour:
   resultPanel: {fileID: 1440282432}
   canvasGroup: {fileID: 1440282434}
   panelRoot: {fileID: 1440282433}
+  useTreasureMapBeforeNextScene: 1
+  treasureMapSceneName: TreasureMap
+  treasureMapStage: 2
   titleText: {fileID: 0}
   descriptionText: {fileID: 0}
   titleTMP: {fileID: 2119538531}
@@ -5156,7 +5121,7 @@ MonoBehaviour:
   nextButton: {fileID: 591521540}
   retryButton: {fileID: 2038199542}
   mainMenuButton: {fileID: 644496194}
-  verticalAxis: Vertical
+  verticalAxis: Horizontal
   deadZone: 0.45
   moveCooldown: 0.22
   submitButton: 331
@@ -6482,7 +6447,6 @@ GameObject:
   - component: {fileID: 2038199546}
   - component: {fileID: 2038199543}
   - component: {fileID: 2038199542}
-  - component: {fileID: 2038199545}
   - component: {fileID: 2038199544}
   m_Layer: 5
   m_Name: RetryButton
@@ -6596,24 +6560,6 @@ MonoBehaviour:
   audioSource: {fileID: 0}
   hoverSound: {fileID: 0}
   clickSound: {fileID: 0}
---- !u!114 &2038199545
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2038199541}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f27ce4bda0e7b154da5f5155a9fc8544, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  target: {fileID: 2038199547}
-  normalScale: 1
-  selectedScale: 1.12
-  pressedScale: 0.92
-  scaleSpeed: 16
-  borderVisual: {fileID: 0}
 --- !u!222 &2038199546
 CanvasRenderer:
   m_ObjectHideFlags: 0
