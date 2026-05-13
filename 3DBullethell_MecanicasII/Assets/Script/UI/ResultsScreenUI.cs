@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -26,11 +27,13 @@ public class ResultScreenUI : MonoBehaviour
     public string winDescription = "";
     public string loseDescription = "";
 
-    [Header("Botones")]
-    public Button[] buttons;
+    [Header("Botones por estado")]
+    public Button nextButton;
+    public Button retryButton;
+    public Button mainMenuButton;
 
     [Header("Navegación mando")]
-    public string verticalAxis = "Vertical";
+    public string verticalAxis = "Horizontal";
     public float deadZone = 0.45f;
     public float moveCooldown = 0.22f;
 
@@ -51,10 +54,14 @@ public class ResultScreenUI : MonoBehaviour
     [Header("Opciones")]
     public bool pauseGameOnShow = true;
 
+    private readonly List<Button> activeButtons = new List<Button>();
+
     private int currentIndex;
     private float nextMoveTime;
     private bool isShowing;
     private bool inputLocked;
+
+    private Vector3 originalPanelScale = Vector3.one;
 
     private void Awake()
     {
@@ -66,6 +73,9 @@ public class ResultScreenUI : MonoBehaviour
 
         if (panelRoot == null && resultPanel != null)
             panelRoot = resultPanel.GetComponent<RectTransform>();
+
+        if (panelRoot != null)
+            originalPanelScale = panelRoot.localScale;
 
         HideInstant();
     }
@@ -100,6 +110,8 @@ public class ResultScreenUI : MonoBehaviour
             Time.timeScale = 0f;
 
         SetTexts(won);
+        SetButtonsForResult(won);
+
         StartCoroutine(ShowRoutine());
     }
 
@@ -121,6 +133,47 @@ public class ResultScreenUI : MonoBehaviour
             descriptionTMP.text = description;
     }
 
+    private void SetButtonsForResult(bool won)
+    {
+        activeButtons.Clear();
+
+        SetButtonVisible(nextButton, won);
+        SetButtonVisible(retryButton, !won);
+        SetButtonVisible(mainMenuButton, true);
+
+        if (won)
+        {
+            AddActiveButton(nextButton);
+            AddActiveButton(mainMenuButton);
+        }
+        else
+        {
+            AddActiveButton(retryButton);
+            AddActiveButton(mainMenuButton);
+        }
+
+        currentIndex = 0;
+    }
+
+    private void SetButtonVisible(Button button, bool visible)
+    {
+        if (button == null) return;
+
+        button.gameObject.SetActive(visible);
+        button.interactable = visible;
+
+        if (visible)
+            RefreshButtonVisual(button);
+    }
+
+    private void AddActiveButton(Button button)
+    {
+        if (button == null) return;
+        if (!button.gameObject.activeSelf) return;
+
+        activeButtons.Add(button);
+    }
+
     private IEnumerator ShowRoutine()
     {
         if (resultPanel != null)
@@ -133,8 +186,11 @@ public class ResultScreenUI : MonoBehaviour
             canvasGroup.blocksRaycasts = false;
         }
 
+        Vector3 startScale = originalPanelScale * hiddenScale;
+        Vector3 endScale = originalPanelScale * visibleScale;
+
         if (panelRoot != null)
-            panelRoot.localScale = Vector3.one * hiddenScale;
+            panelRoot.localScale = startScale;
 
         float timer = 0f;
 
@@ -149,13 +205,7 @@ public class ResultScreenUI : MonoBehaviour
                 canvasGroup.alpha = Mathf.Lerp(0f, 1f, t);
 
             if (panelRoot != null)
-            {
-                panelRoot.localScale = Vector3.LerpUnclamped(
-                    Vector3.one * hiddenScale,
-                    Vector3.one * visibleScale,
-                    t
-                );
-            }
+                panelRoot.localScale = Vector3.LerpUnclamped(startScale, endScale, t);
 
             yield return null;
         }
@@ -168,9 +218,10 @@ public class ResultScreenUI : MonoBehaviour
         }
 
         if (panelRoot != null)
-            panelRoot.localScale = Vector3.one * visibleScale;
+            panelRoot.localScale = endScale;
 
-        currentIndex = 0;
+        RefreshActiveButtonsVisual();
+
         inputLocked = false;
 
         SelectCurrentButton();
@@ -181,6 +232,12 @@ public class ResultScreenUI : MonoBehaviour
         isShowing = false;
         inputLocked = false;
 
+        activeButtons.Clear();
+
+        SetButtonVisible(nextButton, false);
+        SetButtonVisible(retryButton, false);
+        SetButtonVisible(mainMenuButton, false);
+
         if (canvasGroup != null)
         {
             canvasGroup.alpha = 0f;
@@ -189,27 +246,49 @@ public class ResultScreenUI : MonoBehaviour
         }
 
         if (panelRoot != null)
-            panelRoot.localScale = Vector3.one * hiddenScale;
+            panelRoot.localScale = originalPanelScale * hiddenScale;
 
         if (resultPanel != null)
             resultPanel.SetActive(false);
     }
 
+    private void RefreshActiveButtonsVisual()
+    {
+        foreach (Button button in activeButtons)
+        {
+            if (button == null) continue;
+
+            button.interactable = true;
+            RefreshButtonVisual(button);
+        }
+    }
+
+    private void RefreshButtonVisual(Button button)
+    {
+        if (button == null) return;
+
+        ColorBlock colors = button.colors;
+        button.colors = colors;
+
+        if (button.targetGraphic != null)
+            button.targetGraphic.CrossFadeColor(colors.normalColor, 0f, true, true);
+    }
+
     private void HandleNavigation()
     {
-        if (buttons == null || buttons.Length == 0) return;
+        if (activeButtons.Count == 0) return;
 
-        float vertical = Input.GetAxisRaw(verticalAxis);
+        float input = Input.GetAxisRaw(verticalAxis);
 
-        if (Mathf.Abs(vertical) < deadZone)
+        if (Mathf.Abs(input) < deadZone)
             return;
 
         if (Time.unscaledTime < nextMoveTime)
             return;
 
-        if (vertical > 0f)
+        if (input > 0f)
             MoveSelection(-1);
-        else if (vertical < 0f)
+        else if (input < 0f)
             MoveSelection(1);
 
         nextMoveTime = Time.unscaledTime + moveCooldown;
@@ -217,14 +296,14 @@ public class ResultScreenUI : MonoBehaviour
 
     private void MoveSelection(int direction)
     {
-        if (buttons == null || buttons.Length == 0) return;
+        if (activeButtons.Count == 0) return;
 
         currentIndex += direction;
 
         if (currentIndex < 0)
-            currentIndex = buttons.Length - 1;
+            currentIndex = activeButtons.Count - 1;
 
-        if (currentIndex >= buttons.Length)
+        if (currentIndex >= activeButtons.Count)
             currentIndex = 0;
 
         SelectCurrentButton();
@@ -232,9 +311,9 @@ public class ResultScreenUI : MonoBehaviour
 
     private void SelectCurrentButton()
     {
-        if (buttons == null || buttons.Length == 0) return;
+        if (activeButtons.Count == 0) return;
 
-        Button selectedButton = buttons[currentIndex];
+        Button selectedButton = activeButtons[currentIndex];
 
         if (selectedButton == null) return;
 
@@ -252,14 +331,15 @@ public class ResultScreenUI : MonoBehaviour
         if (!Input.GetKeyDown(submitButton) && !Input.GetKeyDown(submitKeyboard))
             return;
 
-        if (buttons == null || buttons.Length == 0) return;
+        if (activeButtons.Count == 0) return;
 
-        Button selectedButton = buttons[currentIndex];
+        Button selectedButton = activeButtons[currentIndex];
 
         if (selectedButton == null) return;
 
         StartCoroutine(SubmitButtonRoutine(selectedButton));
     }
+
     private IEnumerator SubmitButtonRoutine(Button selectedButton)
     {
         inputLocked = true;
