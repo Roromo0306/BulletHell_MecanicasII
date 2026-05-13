@@ -50,6 +50,8 @@ public class MainMenuController : MonoBehaviour
     private float nextMoveTime;
     private bool inputLocked;
 
+    private Vector3 originalTitleScale;
+
     private MenuState currentState = MenuState.Main;
 
     private enum MenuState
@@ -57,6 +59,12 @@ public class MainMenuController : MonoBehaviour
         Main,
         Credits,
         Options
+    }
+
+    private void Awake()
+    {
+        if (title != null)
+            originalTitleScale = title.localScale;
     }
 
     private void Start()
@@ -86,10 +94,11 @@ public class MainMenuController : MonoBehaviour
         }
 
         if (title != null)
-            title.localScale = Vector3.one * 0.75f;
+            title.localScale = originalTitleScale * 0.75f;
 
-        if (buttonsRoot != null)
-            buttonsRoot.localScale = Vector3.one * 0.85f;
+        // IMPORTANTE:
+        // Ya NO tocamos buttonsRoot.localScale.
+        // Así conserva la escala que tengas puesta en el inspector.
 
         float timer = 0f;
 
@@ -103,10 +112,11 @@ public class MainMenuController : MonoBehaviour
                 mainMenuCanvasGroup.alpha = Mathf.Lerp(0f, 1f, t);
 
             if (title != null)
-                title.localScale = Vector3.LerpUnclamped(Vector3.one * 0.75f, Vector3.one, t);
-
-            if (buttonsRoot != null)
-                buttonsRoot.localScale = Vector3.LerpUnclamped(Vector3.one * 0.85f, Vector3.one, t);
+                title.localScale = Vector3.LerpUnclamped(
+                    originalTitleScale * 0.75f,
+                    originalTitleScale,
+                    t
+                );
 
             yield return null;
         }
@@ -117,6 +127,9 @@ public class MainMenuController : MonoBehaviour
             mainMenuCanvasGroup.interactable = true;
             mainMenuCanvasGroup.blocksRaycasts = true;
         }
+
+        if (title != null)
+            title.localScale = originalTitleScale;
 
         inputLocked = false;
 
@@ -267,7 +280,10 @@ public class MainMenuController : MonoBehaviour
 
         yield return new WaitForSecondsRealtime(0.15f);
 
-        SceneTransitionManager.Instance.LoadScene(sceneName);
+        if (SceneTransitionManager.Instance != null)
+            SceneTransitionManager.Instance.LoadScene(sceneName);
+        else
+            SceneManager.LoadScene(sceneName);
     }
 
     public void OpenCredits()
