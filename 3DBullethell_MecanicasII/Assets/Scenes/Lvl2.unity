@@ -1012,7 +1012,7 @@ LineRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1056,7 +1056,7 @@ LineRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 0.91764706, g: 0.87448055, b: 0.031372547, a: 1}
+      key0: {r: 0.91764706, g: 0.8293613, b: 0.031372547, a: 1}
       key1: {r: 1, g: 0.6197971, b: 0, a: 1}
       key2: {r: 0, g: 0.16050863, b: 1, a: 1}
       key3: {r: 0.99628747, g: 1, b: 0, a: 1}
@@ -4386,14 +4386,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.6754716, g: 0, b: 0.51139575, a: 0.83137256}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  m_Sprite: {fileID: 21300000, guid: 40aa7ce7638437c4e820815cd3fc9c70, type: 3}
   m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
