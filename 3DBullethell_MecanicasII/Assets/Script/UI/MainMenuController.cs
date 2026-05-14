@@ -35,8 +35,10 @@ public class MainMenuController : MonoBehaviour
 
     [Header("Gamepad Navigation")]
     public string verticalAxis = "Vertical";
-    public float deadZone = 0.45f;
-    public float moveCooldown = 0.22f;
+    public float deadZone = 0.55f;
+
+    [Tooltip("Tiempo mínimo entre movimientos. Con el sistema nuevo casi no hace falta, pero ayuda a evitar dobles inputs.")]
+    public float moveCooldown = 0.28f;
 
     [Header("Gamepad Buttons")]
     public KeyCode submitButton = KeyCode.JoystickButton0; // A / X
@@ -49,6 +51,8 @@ public class MainMenuController : MonoBehaviour
     private int currentIndex;
     private float nextMoveTime;
     private bool inputLocked;
+
+    private bool navigationAxisHeld;
 
     private Vector3 originalTitleScale;
 
@@ -96,10 +100,6 @@ public class MainMenuController : MonoBehaviour
         if (title != null)
             title.localScale = originalTitleScale * 0.75f;
 
-        // IMPORTANTE:
-        // Ya NO tocamos buttonsRoot.localScale.
-        // Así conserva la escala que tengas puesta en el inspector.
-
         float timer = 0f;
 
         while (timer < introDuration)
@@ -112,11 +112,13 @@ public class MainMenuController : MonoBehaviour
                 mainMenuCanvasGroup.alpha = Mathf.Lerp(0f, 1f, t);
 
             if (title != null)
+            {
                 title.localScale = Vector3.LerpUnclamped(
                     originalTitleScale * 0.75f,
                     originalTitleScale,
                     t
                 );
+            }
 
             yield return null;
         }
@@ -145,7 +147,15 @@ public class MainMenuController : MonoBehaviour
 
         float vertical = Input.GetAxisRaw(verticalAxis);
 
+        // Cuando el stick vuelve al centro, permitimos otro movimiento.
         if (Mathf.Abs(vertical) < deadZone)
+        {
+            navigationAxisHeld = false;
+            return;
+        }
+
+        // Si el stick sigue inclinado, no vuelve a moverse.
+        if (navigationAxisHeld)
             return;
 
         if (Time.unscaledTime < nextMoveTime)
@@ -156,6 +166,7 @@ public class MainMenuController : MonoBehaviour
         else if (vertical < 0f)
             MoveSelection(1);
 
+        navigationAxisHeld = true;
         nextMoveTime = Time.unscaledTime + moveCooldown;
     }
 
@@ -291,6 +302,7 @@ public class MainMenuController : MonoBehaviour
         if (inputLocked) return;
 
         currentState = MenuState.Credits;
+        navigationAxisHeld = false;
 
         if (optionsPanel != null)
             optionsPanel.Hide();
@@ -304,6 +316,7 @@ public class MainMenuController : MonoBehaviour
     public void CloseCredits()
     {
         currentState = MenuState.Main;
+        navigationAxisHeld = false;
 
         if (creditsPanel != null)
             creditsPanel.Hide();
@@ -316,6 +329,7 @@ public class MainMenuController : MonoBehaviour
         if (inputLocked) return;
 
         currentState = MenuState.Options;
+        navigationAxisHeld = false;
 
         if (creditsPanel != null)
             creditsPanel.Hide();
@@ -329,6 +343,7 @@ public class MainMenuController : MonoBehaviour
     public void CloseOptions()
     {
         currentState = MenuState.Main;
+        navigationAxisHeld = false;
 
         if (optionsPanel != null)
             optionsPanel.Hide();

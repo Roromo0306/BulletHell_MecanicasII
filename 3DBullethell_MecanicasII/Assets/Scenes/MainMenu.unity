@@ -2237,8 +2237,8 @@ MonoBehaviour:
   optionsCloseButton: {fileID: 550875650}
   introDuration: 0.6
   verticalAxis: Vertical
-  deadZone: 0.45
-  moveCooldown: 0.22
+  deadZone: 1.5
+  moveCooldown: 9
   submitButton: 331
   cancelButton: 332
   submitKeyboard: 13
