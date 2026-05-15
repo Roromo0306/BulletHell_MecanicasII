@@ -23,7 +23,6 @@ public class PlayerMovement : MonoBehaviour
 
     private PlayerHealth playerHealth;
 
-
     private Rigidbody rb;
     private Vector3 moveInput;
     private Vector3 currentVelocity;
@@ -31,9 +30,11 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 originalVisualScale;
     private Vector3 originalSwordPivotScale;
 
-    public Vector3 LastMoveDirection { get; private set; } = Vector3.right;
+    public Vector3 LastMoveDirection { get; private set; } = Vector3.left;
     public bool CanMove { get; set; } = true;
-    public int FacingDirection { get; private set; } = 1;
+
+    // Tu arte base mira a la izquierda
+    public int FacingDirection { get; private set; } = -1;
 
     private void Awake()
     {
@@ -44,7 +45,10 @@ public class PlayerMovement : MonoBehaviour
 
         if (swordPivot != null)
             originalSwordPivotScale = swordPivot.localScale;
+
         playerHealth = GetComponent<PlayerHealth>();
+
+        FlipCharacter();
     }
 
     private void Update()
@@ -114,20 +118,29 @@ public class PlayerMovement : MonoBehaviour
                 currentVelocity.z
             );
         }
-        
     }
 
     private void FlipCharacter()
     {
+        if (isDashing)
+            return;
+
         if (moveInput.x > 0.05f)
             FacingDirection = 1;
         else if (moveInput.x < -0.05f)
             FacingDirection = -1;
 
+        bool lookingRight = FacingDirection == 1;
+
         if (visual != null)
         {
+            float xScale = Mathf.Abs(originalVisualScale.x);
+
+            // Arte base del player mira a la IZQUIERDA:
+            // izquierda = positivo
+            // derecha = negativo
             visual.localScale = new Vector3(
-                Mathf.Abs(originalVisualScale.x) * FacingDirection,
+                lookingRight ? -xScale : xScale,
                 originalVisualScale.y,
                 originalVisualScale.z
             );
@@ -135,8 +148,13 @@ public class PlayerMovement : MonoBehaviour
 
         if (swordPivot != null)
         {
+            float xScale = Mathf.Abs(originalSwordPivotScale.x);
+
+            // Arte base de la espada también está a la IZQUIERDA:
+            // izquierda = positivo
+            // derecha = negativo
             swordPivot.localScale = new Vector3(
-                Mathf.Abs(originalSwordPivotScale.x) * FacingDirection,
+                lookingRight ? xScale : -xScale,
                 originalSwordPivotScale.y,
                 originalSwordPivotScale.z
             );

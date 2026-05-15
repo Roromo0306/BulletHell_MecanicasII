@@ -19,6 +19,8 @@ public class PlayerAttack : MonoBehaviour
     public PlayerMovement playerMovement;
     public Transform swordPivot;
     public SwordHitbox swordHitbox;
+    public PlayerAnimatorController playerAnimator;
+
     public bool CanAttack { get; set; } = true;
 
     private bool isAttacking;
@@ -28,6 +30,15 @@ public class PlayerAttack : MonoBehaviour
     {
         if (playerMovement == null)
             playerMovement = GetComponent<PlayerMovement>();
+
+        if (playerAnimator == null)
+            playerAnimator = GetComponent<PlayerAnimatorController>();
+
+        if (playerAnimator == null)
+            playerAnimator = GetComponentInChildren<PlayerAnimatorController>();
+
+        if (playerAnimator == null)
+            playerAnimator = GetComponentInParent<PlayerAnimatorController>();
     }
 
     private void Update()
@@ -53,21 +64,25 @@ public class PlayerAttack : MonoBehaviour
         isAttacking = true;
         nextAttackTime = Time.time + attackCooldown;
 
+        if (playerAnimator != null)
+            playerAnimator.PlayAttack();
+
         Vector3 attackDirection = playerMovement.LastMoveDirection;
 
         if (attackDirection.sqrMagnitude < 0.01f)
             attackDirection = Vector3.right;
 
-        //PositionSwordHitbox(attackDirection);
         playerMovement.CanMove = false;
 
         yield return new WaitForSeconds(hitboxStartTime);
 
-        swordHitbox.EnableHitbox();
+        if (swordHitbox != null)
+            swordHitbox.EnableHitbox();
 
         yield return new WaitForSeconds(hitboxActiveTime);
 
-        swordHitbox.DisableHitbox();
+        if (swordHitbox != null)
+            swordHitbox.DisableHitbox();
 
         yield return new WaitForSeconds(attackMoveLockTime);
 
@@ -77,7 +92,4 @@ public class PlayerAttack : MonoBehaviour
 
         isAttacking = false;
     }
-
-
-   
 }
