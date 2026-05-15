@@ -2,141 +2,126 @@ Shader "Custom/BossDitherReveal_Mesh"
 {
     Properties
     {
-        _MainTex ("Texture", 2D) = "white" {}
+        _MainTex ("Main Texture", 2D) = "white" {}
         _Color ("Color", Color) = (1,1,1,1)
 
         _RevealScreenPos ("Reveal Screen Pos", Vector) = (0.5,0.5,0,0)
         _RevealRadius ("Reveal Radius", Float) = 0
         _RevealSoftness ("Reveal Softness", Float) = 0.04
         _MinAlpha ("Minimum Visible Amount", Range(0.05, 1)) = 0.35
+        _DitherPixelScale ("Dither Pixel Scale", Float) = 1
     }
 
     SubShader
     {
         Tags
         {
-            "Queue"="Transparent"
-            "RenderType"="Transparent"
+            "Queue"="AlphaTest"
+            "RenderType"="TransparentCutout"
+            "IgnoreProjector"="True"
         }
 
         Cull Off
-        ZWrite Off
-        Blend SrcAlpha OneMinusSrcAlpha
+        ZWrite On
 
-        Pass
+        CGPROGRAM
+        #pragma surface surf Standard fullforwardshadows addshadow
+        #pragma target 3.0
+
+        sampler2D _MainTex;
+        fixed4 _Color;
+
+        float4 _RevealScreenPos;
+        float _RevealRadius;
+        float _RevealSoftness;
+        float _MinAlpha;
+        float _DitherPixelScale;
+
+        struct Input
         {
-            CGPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
+            float2 uv_MainTex;
+            float4 screenPos;
+        };
 
-            #include "UnityCG.cginc"
+        float Bayer4x4(float2 pixel)
+        {
+            int x = (int)fmod(pixel.x, 4);
+            int y = (int)fmod(pixel.y, 4);
 
-            sampler2D _MainTex;
-            float4 _MainTex_ST;
-            fixed4 _Color;
+            float value = 0;
 
-            float4 _RevealScreenPos;
-            float _RevealRadius;
-            float _RevealSoftness;
-            float _MinAlpha;
-
-            struct appdata
+            if (y == 0)
             {
-                float4 vertex : POSITION;
-                float2 uv : TEXCOORD0;
-            };
-
-            struct v2f
+                if (x == 0) value = 0;
+                else if (x == 1) value = 8;
+                else if (x == 2) value = 2;
+                else value = 10;
+            }
+            else if (y == 1)
             {
-                float4 pos : SV_POSITION;
-                float2 uv : TEXCOORD0;
-                float4 screenPos : TEXCOORD1;
-            };
-
-            float Bayer4x4(float2 pixel)
+                if (x == 0) value = 12;
+                else if (x == 1) value = 4;
+                else if (x == 2) value = 14;
+                else value = 6;
+            }
+            else if (y == 2)
             {
-                int x = (int)fmod(pixel.x, 4);
-                int y = (int)fmod(pixel.y, 4);
-
-                float value = 0;
-
-                if (y == 0)
-                {
-                    if (x == 0) value = 0;
-                    if (x == 1) value = 8;
-                    if (x == 2) value = 2;
-                    if (x == 3) value = 10;
-                }
-                else if (y == 1)
-                {
-                    if (x == 0) value = 12;
-                    if (x == 1) value = 4;
-                    if (x == 2) value = 14;
-                    if (x == 3) value = 6;
-                }
-                else if (y == 2)
-                {
-                    if (x == 0) value = 3;
-                    if (x == 1) value = 11;
-                    if (x == 2) value = 1;
-                    if (x == 3) value = 9;
-                }
-                else
-                {
-                    if (x == 0) value = 15;
-                    if (x == 1) value = 7;
-                    if (x == 2) value = 13;
-                    if (x == 3) value = 5;
-                }
-
-                return (value + 0.5) / 16.0;
+                if (x == 0) value = 3;
+                else if (x == 1) value = 11;
+                else if (x == 2) value = 1;
+                else value = 9;
+            }
+            else
+            {
+                if (x == 0) value = 15;
+                else if (x == 1) value = 7;
+                else if (x == 2) value = 13;
+                else value = 5;
             }
 
-            v2f vert(appdata v)
-            {
-                v2f o;
-
-                o.pos = UnityObjectToClipPos(v.vertex);
-                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-                o.screenPos = ComputeScreenPos(o.pos);
-
-                return o;
-            }
-
-            fixed4 frag(v2f i) : SV_Target
-            {
-                fixed4 col = tex2D(_MainTex, i.uv) * _Color;
-
-                float2 screenUV = i.screenPos.xy / i.screenPos.w;
-
-                float aspect = _ScreenParams.x / _ScreenParams.y;
-
-                float2 diff = screenUV - _RevealScreenPos.xy;
-                diff.x *= aspect;
-
-                float dist = length(diff);
-
-                float reveal = 1.0 - smoothstep(
-                    _RevealRadius - _RevealSoftness,
-                    _RevealRadius,
-                    dist
-                );
-
-                if (reveal > 0.001)
-                {
-                    float2 pixel = floor(screenUV * _ScreenParams.xy);
-                    float dither = Bayer4x4(pixel);
-
-                    float keepChance = lerp(1.0, _MinAlpha, reveal);
-
-                    if (dither > keepChance)
-                        discard;
-                }
-
-                return col;
-            }
-
-            ENDCG
+            return (value + 0.5) / 16.0;
         }
+
+        void surf(Input IN, inout SurfaceOutputStandard o)
+        {
+            fixed4 col = tex2D(_MainTex, IN.uv_MainTex) * _Color;
+
+            float2 screenUV = IN.screenPos.xy / IN.screenPos.w;
+            float aspect = _ScreenParams.x / _ScreenParams.y;
+
+            float2 diff = screenUV - _RevealScreenPos.xy;
+            diff.x *= aspect;
+
+            float dist = length(diff);
+
+            float reveal = 1.0 - smoothstep(
+                _RevealRadius - _RevealSoftness,
+                _RevealRadius,
+                dist
+            );
+
+            if (reveal > 0.001)
+            {
+                float pixelScale = max(_DitherPixelScale, 1.0);
+                float2 pixel = floor((screenUV * _ScreenParams.xy) / pixelScale);
+
+                float dither = Bayer4x4(pixel);
+
+                // reveal = 1 significa zona interior del círculo.
+                // _MinAlpha controla cuánto queda visible dentro.
+                float keepChance = lerp(1.0, _MinAlpha, reveal);
+
+                if (dither > keepChance)
+                    clip(-1);
+            }
+
+            o.Albedo = col.rgb;
+            o.Alpha = col.a;
+            o.Metallic = 0;
+            o.Smoothness = 0.35;
+        }
+        ENDCG
     }
+
+    FallBack "Diffuse"
 }

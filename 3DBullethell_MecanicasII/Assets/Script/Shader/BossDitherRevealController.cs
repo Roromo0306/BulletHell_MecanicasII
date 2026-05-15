@@ -7,29 +7,58 @@ public class BossDitherRevealController : MonoBehaviour
     public Transform player;
     public Camera targetCamera;
 
-    [Tooltip("Si está vacío, busca automáticamente todos los renderers hijos.")]
-    public Renderer[] bossRenderers;
+    [Tooltip("Arrastra aquí el root visual del boss. En tu caso: Fish (1).")]
+    public Transform visualRoot;
+
+    [Header("Shader")]
+    public Shader ditherShader;
 
     [Header("Detection")]
-    public float activationScreenDistance = 0.18f;
-    public float depthMargin = 0.05f;
+    public float activationScreenDistance = 0.22f;
+    public float depthMargin = 0.03f;
     public bool invertBehindCheck = false;
 
     [Header("Reveal Effect")]
     public Vector3 playerRevealOffset = new Vector3(0f, 0.75f, 0f);
-    public float revealRadius = 0.12f;
-    public float revealSoftness = 0.035f;
+    public float revealRadius = 0.14f;
+    public float revealSoftness = 0.04f;
+
     [Range(0.05f, 1f)]
     public float minVisibleAmount = 0.35f;
+
+    [Tooltip("1 = puntitos pequeños. 2 o 3 = puntitos más grandes.")]
+    public float ditherPixelScale = 1f;
+
     public float fadeSpeed = 8f;
 
-    private readonly List<Material> bossMaterials = new List<Material>();
+    [Header("Safety")]
+    [Tooltip("Si está activo, cuando no hay efecto vuelve SIEMPRE a los materiales originales.")]
+    public bool restoreOriginalWhenInactive = true;
+
+    private class RendererMaterialData
+    {
+        public Renderer renderer;
+        public Material[] originalMaterials;
+        public Material[] ditherMaterials;
+    }
+
+    private readonly List<RendererMaterialData> rendererData = new List<RendererMaterialData>();
+    private readonly List<Material> ditherMaterials = new List<Material>();
+
     private float currentReveal;
+    private bool usingDitherMaterials;
 
     private static readonly int RevealScreenPosID = Shader.PropertyToID("_RevealScreenPos");
     private static readonly int RevealRadiusID = Shader.PropertyToID("_RevealRadius");
     private static readonly int RevealSoftnessID = Shader.PropertyToID("_RevealSoftness");
     private static readonly int MinAlphaID = Shader.PropertyToID("_MinAlpha");
+    private static readonly int DitherPixelScaleID = Shader.PropertyToID("_DitherPixelScale");
+
+    private static readonly int MainTexID = Shader.PropertyToID("_MainTex");
+    private static readonly int BaseMapID = Shader.PropertyToID("_BaseMap");
+
+    private static readonly int ColorID = Shader.PropertyToID("_Color");
+    private static readonly int BaseColorID = Shader.PropertyToID("_BaseColor");
 
     private void Awake()
     {
@@ -44,12 +73,16 @@ public class BossDitherRevealController : MonoBehaviour
                 player = playerObj.transform;
         }
 
-        if (bossRenderers == null || bossRenderers.Length == 0)
-            bossRenderers = GetComponentsInChildren<Renderer>(true);
+        if (visualRoot == null)
+            visualRoot = transform;
 
-        CacheMaterials();
+        if (ditherShader == null)
+            ditherShader = Shader.Find("Custom/BossDitherReveal_Mesh");
 
-        SetRevealAmount(0f);
+        CacheOriginalAndCreateDitherMaterials();
+
+        currentReveal = 0f;
+        UseOriginalMaterials();
     }
 
     private void LateUpdate()
@@ -67,29 +100,142 @@ public class BossDitherRevealController : MonoBehaviour
             fadeSpeed * Time.deltaTime
         );
 
-        UpdateShader();
+        if (currentReveal > 0.001f)
+        {
+            if (!usingDitherMaterials)
+                UseDitherMaterials();
+
+            UpdateDitherShaderValues();
+        }
+        else
+        {
+            if (restoreOriginalWhenInactive && usingDitherMaterials)
+                UseOriginalMaterials();
+        }
     }
 
-    private void CacheMaterials()
+    private void CacheOriginalAndCreateDitherMaterials()
     {
-        bossMaterials.Clear();
+        rendererData.Clear();
+        ditherMaterials.Clear();
 
-        if (bossRenderers == null) return;
+        if (ditherShader == null)
+        {
+            Debug.LogWarning("BossDitherRevealController: no se encontró Custom/BossDitherReveal_Mesh.");
+            return;
+        }
 
-        foreach (Renderer renderer in bossRenderers)
+        Renderer[] renderers = visualRoot.GetComponentsInChildren<Renderer>(true);
+
+        if (renderers == null || renderers.Length == 0)
+        {
+            Debug.LogWarning("BossDitherRevealController: no se encontraron Renderers en " + visualRoot.name);
+            return;
+        }
+
+        foreach (Renderer renderer in renderers)
         {
             if (renderer == null) continue;
 
-            Material[] mats = renderer.materials;
+            Material[] originals = renderer.sharedMaterials;
+            Material[] ditherCopies = new Material[originals.Length];
 
-            foreach (Material mat in mats)
+            for (int i = 0; i < originals.Length; i++)
             {
-                if (mat == null) continue;
+                Material original = originals[i];
 
-                if (!bossMaterials.Contains(mat))
-                    bossMaterials.Add(mat);
+                if (original == null)
+                {
+                    ditherCopies[i] = null;
+                    continue;
+                }
+
+                Material ditherCopy = new Material(ditherShader);
+                ditherCopy.name = original.name + "_DitherCopy";
+
+                CopyBasicLook(original, ditherCopy);
+
+                ditherCopy.SetFloat(RevealRadiusID, 0f);
+                ditherCopy.SetFloat(RevealSoftnessID, revealSoftness);
+                ditherCopy.SetFloat(MinAlphaID, minVisibleAmount);
+                ditherCopy.SetFloat(DitherPixelScaleID, ditherPixelScale);
+
+                ditherCopies[i] = ditherCopy;
+                ditherMaterials.Add(ditherCopy);
             }
+
+            RendererMaterialData data = new RendererMaterialData
+            {
+                renderer = renderer,
+                originalMaterials = originals,
+                ditherMaterials = ditherCopies
+            };
+
+            rendererData.Add(data);
         }
+
+        Debug.Log("BossDitherRevealController: Renderers detectados: " + rendererData.Count);
+        Debug.Log("BossDitherRevealController: Dither materials creados: " + ditherMaterials.Count);
+    }
+
+    private void CopyBasicLook(Material original, Material target)
+    {
+        Texture texture = null;
+        Vector2 textureScale = Vector2.one;
+        Vector2 textureOffset = Vector2.zero;
+        Color color = Color.white;
+
+        if (original.HasProperty(BaseColorID))
+            color = original.GetColor(BaseColorID);
+        else if (original.HasProperty(ColorID))
+            color = original.GetColor(ColorID);
+
+        if (original.HasProperty(BaseMapID) && original.GetTexture(BaseMapID) != null)
+        {
+            texture = original.GetTexture(BaseMapID);
+            textureScale = original.GetTextureScale(BaseMapID);
+            textureOffset = original.GetTextureOffset(BaseMapID);
+        }
+        else if (original.HasProperty(MainTexID) && original.GetTexture(MainTexID) != null)
+        {
+            texture = original.GetTexture(MainTexID);
+            textureScale = original.GetTextureScale(MainTexID);
+            textureOffset = original.GetTextureOffset(MainTexID);
+        }
+
+        if (target.HasProperty(MainTexID))
+        {
+            target.SetTexture(MainTexID, texture);
+            target.SetTextureScale(MainTexID, textureScale);
+            target.SetTextureOffset(MainTexID, textureOffset);
+        }
+
+        if (target.HasProperty(ColorID))
+            target.SetColor(ColorID, color);
+    }
+
+    private void UseOriginalMaterials()
+    {
+        foreach (RendererMaterialData data in rendererData)
+        {
+            if (data == null || data.renderer == null) continue;
+
+            data.renderer.sharedMaterials = data.originalMaterials;
+        }
+
+        usingDitherMaterials = false;
+    }
+
+    private void UseDitherMaterials()
+    {
+        foreach (RendererMaterialData data in rendererData)
+        {
+            if (data == null || data.renderer == null) continue;
+
+            data.renderer.sharedMaterials = data.ditherMaterials;
+        }
+
+        usingDitherMaterials = true;
     }
 
     private bool ShouldReveal()
@@ -112,13 +258,12 @@ public class BossDitherRevealController : MonoBehaviour
         Vector2 bossScreen = new Vector2(bossViewport.x, bossViewport.y);
 
         float screenDistance = Vector2.Distance(playerScreen, bossScreen);
-
         bool closeOnScreen = screenDistance <= activationScreenDistance;
 
         return playerBehindBoss && closeOnScreen;
     }
 
-    private void UpdateShader()
+    private void UpdateDitherShaderValues()
     {
         Vector3 playerWorldPos = player.position + playerRevealOffset;
         Vector3 viewport = targetCamera.WorldToViewportPoint(playerWorldPos);
@@ -127,7 +272,7 @@ public class BossDitherRevealController : MonoBehaviour
 
         float finalRadius = revealRadius * currentReveal;
 
-        foreach (Material mat in bossMaterials)
+        foreach (Material mat in ditherMaterials)
         {
             if (mat == null) continue;
 
@@ -135,12 +280,17 @@ public class BossDitherRevealController : MonoBehaviour
             mat.SetFloat(RevealRadiusID, finalRadius);
             mat.SetFloat(RevealSoftnessID, revealSoftness);
             mat.SetFloat(MinAlphaID, minVisibleAmount);
+            mat.SetFloat(DitherPixelScaleID, ditherPixelScale);
         }
     }
 
-    private void SetRevealAmount(float amount)
+    private void OnDisable()
     {
-        currentReveal = amount;
-        UpdateShader();
+        UseOriginalMaterials();
+    }
+
+    private void OnDestroy()
+    {
+        UseOriginalMaterials();
     }
 }
