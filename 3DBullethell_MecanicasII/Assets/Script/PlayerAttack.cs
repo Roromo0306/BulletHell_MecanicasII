@@ -15,6 +15,12 @@ public class PlayerAttack : MonoBehaviour
     public float attackCooldown = 0.15f;
     public float attackMoveLockTime = 0.18f;
 
+    [Header("Sword Shake")]
+    public Transform swordShakeTarget;
+    public float swordShakeDuration = 0.12f;
+    public float swordShakeAngle = 4f;
+    public float swordShakeSpeed = 70f;
+
     [Header("References")]
     public PlayerMovement playerMovement;
     public Transform swordPivot;
@@ -25,6 +31,9 @@ public class PlayerAttack : MonoBehaviour
 
     private bool isAttacking;
     private float nextAttackTime;
+
+    private Coroutine swordShakeCoroutine;
+    private Quaternion swordShakeStartLocalRotation;
 
     private void Awake()
     {
@@ -39,6 +48,12 @@ public class PlayerAttack : MonoBehaviour
 
         if (playerAnimator == null)
             playerAnimator = GetComponentInParent<PlayerAnimatorController>();
+
+        if (swordShakeTarget == null)
+            swordShakeTarget = swordPivot;
+
+        if (swordShakeTarget != null)
+            swordShakeStartLocalRotation = swordShakeTarget.localRotation;
     }
 
     private void Update()
@@ -67,6 +82,8 @@ public class PlayerAttack : MonoBehaviour
         if (playerAnimator != null)
             playerAnimator.PlayAttack();
 
+        StartSwordShake();
+
         Vector3 attackDirection = playerMovement.LastMoveDirection;
 
         if (attackDirection.sqrMagnitude < 0.01f)
@@ -91,5 +108,36 @@ public class PlayerAttack : MonoBehaviour
         yield return new WaitForSeconds(attackDuration);
 
         isAttacking = false;
+    }
+
+    private void StartSwordShake()
+    {
+        if (swordShakeTarget == null)
+            return;
+
+        if (swordShakeCoroutine != null)
+            StopCoroutine(swordShakeCoroutine);
+
+        swordShakeCoroutine = StartCoroutine(SwordShakeRoutine());
+    }
+
+    private IEnumerator SwordShakeRoutine()
+    {
+        swordShakeStartLocalRotation = swordShakeTarget.localRotation;
+
+        float timer = 0f;
+
+        while (timer < swordShakeDuration)
+        {
+            float shake = Mathf.Sin(timer * swordShakeSpeed) * swordShakeAngle;
+
+            swordShakeTarget.localRotation = swordShakeStartLocalRotation * Quaternion.Euler(0f, 0f, shake);
+
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
+        swordShakeTarget.localRotation = swordShakeStartLocalRotation;
+        swordShakeCoroutine = null;
     }
 }

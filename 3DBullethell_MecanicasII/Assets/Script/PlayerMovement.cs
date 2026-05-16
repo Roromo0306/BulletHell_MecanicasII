@@ -13,6 +13,13 @@ public class PlayerMovement : MonoBehaviour
     public Transform visual;
     public Transform swordPivot;
 
+    [Header("Weapon Walk Bob")]
+    public bool useWeaponWalkBob = true;
+    public Transform weaponBobTarget;
+    public float weaponWalkBobAmount = 0.08f;
+    public float weaponWalkBobSpeed = 5f;
+    public float weaponWalkBobReturnSpeed = 8f;
+
     [Header("Dash")]
     public float dashSpeed = 15f;
     public float dashDuration = 0.2f;
@@ -29,6 +36,7 @@ public class PlayerMovement : MonoBehaviour
 
     private Vector3 originalVisualScale;
     private Vector3 originalSwordPivotScale;
+    private Vector3 originalWeaponBobLocalPosition;
 
     public Vector3 LastMoveDirection { get; private set; } = Vector3.left;
     public bool CanMove { get; set; } = true;
@@ -46,6 +54,12 @@ public class PlayerMovement : MonoBehaviour
         if (swordPivot != null)
             originalSwordPivotScale = swordPivot.localScale;
 
+        if (weaponBobTarget == null)
+            weaponBobTarget = swordPivot;
+
+        if (weaponBobTarget != null)
+            originalWeaponBobLocalPosition = weaponBobTarget.localPosition;
+
         playerHealth = GetComponent<PlayerHealth>();
 
         FlipCharacter();
@@ -55,6 +69,7 @@ public class PlayerMovement : MonoBehaviour
     {
         ReadInput();
         FlipCharacter();
+        UpdateWeaponWalkBob();
 
         if (Input.GetKeyDown(KeyCode.JoystickButton3) || Input.GetKeyDown(KeyCode.LeftShift))
         {
@@ -159,6 +174,27 @@ public class PlayerMovement : MonoBehaviour
                 originalSwordPivotScale.z
             );
         }
+    }
+
+    private void UpdateWeaponWalkBob()
+    {
+        if (weaponBobTarget == null || !useWeaponWalkBob)
+            return;
+
+        bool isWalking = moveInput.sqrMagnitude > 0.01f && CanMove;
+        Vector3 targetLocalPosition = originalWeaponBobLocalPosition;
+
+        if (isWalking)
+        {
+            float bobOffset = Mathf.Sin(Time.time * weaponWalkBobSpeed) * weaponWalkBobAmount;
+            targetLocalPosition.y += bobOffset;
+        }
+
+        weaponBobTarget.localPosition = Vector3.Lerp(
+            weaponBobTarget.localPosition,
+            targetLocalPosition,
+            weaponWalkBobReturnSpeed * Time.deltaTime
+        );
     }
 
     IEnumerator Dash()
