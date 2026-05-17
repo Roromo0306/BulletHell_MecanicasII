@@ -24,8 +24,13 @@ public class GameMusicManager : MonoBehaviour
     public float fadeOutDuration = 0.7f;
     public float fadeInDuration = 0.8f;
 
+    [Header("Pitch")]
+    public float normalPitch = 1f;
+
     private Coroutine musicRoutine;
     private bool manualFadeOutDone;
+
+    private float currentMusicPitch = 1f;
 
     private void Awake()
     {
@@ -47,6 +52,9 @@ public class GameMusicManager : MonoBehaviour
         audioSource.loop = true;
         audioSource.playOnAwake = false;
 
+        currentMusicPitch = normalPitch;
+        audioSource.pitch = currentMusicPitch;
+
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
@@ -63,6 +71,8 @@ public class GameMusicManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        ResetMusicPitch();
+
         if (musicRoutine != null)
             StopCoroutine(musicRoutine);
 
@@ -99,6 +109,7 @@ public class GameMusicManager : MonoBehaviour
 
         audioSource.clip = music.musicClip;
         audioSource.volume = music.volume;
+        audioSource.pitch = currentMusicPitch;
         audioSource.loop = true;
         audioSource.Play();
     }
@@ -124,6 +135,8 @@ public class GameMusicManager : MonoBehaviour
             if (!audioSource.isPlaying)
                 audioSource.Play();
 
+            audioSource.pitch = currentMusicPitch;
+
             yield return StartCoroutine(FadeVolume(audioSource.volume, music.volume, fadeInDuration));
             yield break;
         }
@@ -134,6 +147,7 @@ public class GameMusicManager : MonoBehaviour
         audioSource.Stop();
         audioSource.clip = music.musicClip;
         audioSource.volume = 0f;
+        audioSource.pitch = currentMusicPitch;
         audioSource.loop = true;
         audioSource.Play();
 
@@ -154,6 +168,7 @@ public class GameMusicManager : MonoBehaviour
         audioSource.Stop();
         audioSource.clip = music.musicClip;
         audioSource.volume = 0f;
+        audioSource.pitch = currentMusicPitch;
         audioSource.loop = true;
         audioSource.Play();
 
@@ -196,5 +211,23 @@ public class GameMusicManager : MonoBehaviour
         }
 
         return null;
+    }
+
+    public void SetMusicPitch(float pitch)
+    {
+        currentMusicPitch = pitch;
+
+        if (audioSource != null)
+            audioSource.pitch = currentMusicPitch;
+    }
+
+    public void ResetMusicPitch()
+    {
+        SetMusicPitch(normalPitch);
+    }
+
+    public float GetCurrentMusicPitch()
+    {
+        return currentMusicPitch;
     }
 }

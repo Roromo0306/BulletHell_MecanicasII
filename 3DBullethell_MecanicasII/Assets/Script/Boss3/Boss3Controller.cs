@@ -53,6 +53,10 @@ public class Boss3Controller : MonoBehaviour
     public float spikeGroundYOffset = 0f;
     public float spikeDelayBetweenSpawns = 0.3f;
 
+    [Header("Rage Camera Shake")]
+    public CameraFollow cameraFollow;
+    public float rageCameraShakeStrength = 0.22f;
+
     private int currentPhase = 1;
 
     private bool isAttacking;
@@ -87,6 +91,9 @@ public class Boss3Controller : MonoBehaviour
 
         if (ramHitbox != null)
             ramHitbox.SetActiveHitbox(false);
+
+        if (cameraFollow == null)
+            cameraFollow = FindObjectOfType<CameraFollow>();
     }
 
     private void Start()
@@ -164,6 +171,9 @@ public class Boss3Controller : MonoBehaviour
         isRaging = true;
         isAttacking = true;
         isRamming = false;
+
+        if (cameraFollow != null)
+            cameraFollow.StartCameraShake(rageDuration, rageCameraShakeStrength);
 
         if (GameSFXManager.Instance != null)
             GameSFXManager.Instance.PlayBoss3Rage();

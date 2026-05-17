@@ -33,6 +33,10 @@ public class Boss2Controller : MonoBehaviour
     public float rageShakeStrength = 0.18f;
     public float rageLiftHeight = 1.5f;
 
+    [Header("Rage Camera Shake")]
+    public CameraFollow cameraFollow;
+    public float rageCameraShakeStrength = 0.18f;
+
     private bool phase2;
     private bool isAttacking;
     private bool isRaging;
@@ -44,6 +48,9 @@ public class Boss2Controller : MonoBehaviour
     private void Start()
     {
         StartCoroutine(AttackLoop());
+
+        if (cameraFollow == null)
+            cameraFollow = FindObjectOfType<CameraFollow>();
     }
 
     private void Update()
@@ -102,6 +109,9 @@ public class Boss2Controller : MonoBehaviour
         phase2 = true;
         isRaging = true;
         isAttacking = true;
+
+        if (cameraFollow != null)
+            cameraFollow.StartCameraShake(rageDuration, rageCameraShakeStrength);
 
         if (GameSFXManager.Instance != null)
             GameSFXManager.Instance.PlayBoss2Rage();

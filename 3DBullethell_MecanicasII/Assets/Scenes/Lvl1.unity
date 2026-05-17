@@ -328,7 +328,7 @@ Transform:
   m_GameObject: {fileID: 91416340}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -10.8, y: 0.91, z: -10.69}
+  m_LocalPosition: {x: -5.91, y: 0.91, z: -0.9}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -593,7 +593,7 @@ Transform:
   m_GameObject: {fileID: 172616371}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.178, z: 0}
+  m_LocalPosition: {x: 0, y: 2, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -691,6 +691,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Caribdis 1
       objectReference: {fileID: 0}
+    - target: {fileID: 4303450223252289479, guid: 40ca5d6762251b640a4a3aecff74bd20, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: b38dd7d15adfe974ebffe6ff95575fae, type: 2}
     - target: {fileID: 4806028696070144646, guid: 40ca5d6762251b640a4a3aecff74bd20, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
@@ -1971,7 +1975,7 @@ Transform:
   m_GameObject: {fileID: 530123577}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 8.51, y: 0.91, z: -8.89}
+  m_LocalPosition: {x: 5.47, y: 0.91, z: -0.87}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4047,6 +4051,9 @@ MonoBehaviour:
     minZ: -14
     maxZ: 13.3
   includeOrthographicCameraSize: 1
+  allowCameraShake: 1
+  defaultShakeDuration: 1
+  defaultShakeStrength: 0.18
 --- !u!4 &1103595626
 Transform:
   m_ObjectHideFlags: 0
@@ -6646,6 +6653,10 @@ PrefabInstance:
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 3bf8f16d92998a04c9a2f3a676c490df, type: 2}
+    - target: {fileID: -2874321481728721583, guid: 3e871e831ebfcdc4c8de07d26fc0dc05, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.41
+      objectReference: {fileID: 0}
     - target: {fileID: -2692268317683888230, guid: 3e871e831ebfcdc4c8de07d26fc0dc05, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 

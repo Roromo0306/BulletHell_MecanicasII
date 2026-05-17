@@ -39,6 +39,16 @@ public class CameraFollow : MonoBehaviour
     [Header("Camera Size Clamp")]
     public bool includeOrthographicCameraSize = true;
 
+    [Header("Camera Shake")]
+    public bool allowCameraShake = true;
+    public float defaultShakeDuration = 1f;
+    public float defaultShakeStrength = 0.18f;
+
+    private float shakeTimer;
+    private float shakeDuration;
+    private float shakeStrength;
+    private Vector3 currentShakeOffset;
+
     private Camera cam;
 
     private void Awake()
@@ -57,6 +67,8 @@ public class CameraFollow : MonoBehaviour
         if (target == null)
             return;
 
+        Vector3 cameraPositionWithoutShake = transform.position - currentShakeOffset;
+
         Vector3 targetPosition = target.position + offset;
 
         CameraBounds activeBounds = GetCurrentBounds();
@@ -64,11 +76,15 @@ public class CameraFollow : MonoBehaviour
         if (activeBounds != null && activeBounds.useLimits)
             targetPosition = ClampPositionToBounds(targetPosition, activeBounds);
 
-        transform.position = Vector3.Lerp(
-            transform.position,
+        Vector3 smoothPosition = Vector3.Lerp(
+            cameraPositionWithoutShake,
             targetPosition,
             smoothSpeed * Time.deltaTime
         );
+
+        currentShakeOffset = GetShakeOffset();
+
+        transform.position = smoothPosition + currentShakeOffset;
     }
 
     private CameraBounds GetCurrentBounds()
@@ -159,5 +175,37 @@ public class CameraFollow : MonoBehaviour
         );
 
         Gizmos.DrawWireCube(center, size);
+    }
+
+    public void StartCameraShake()
+    {
+        StartCameraShake(defaultShakeDuration, defaultShakeStrength);
+    }
+
+    public void StartCameraShake(float duration, float strength)
+    {
+        if (!allowCameraShake)
+            return;
+
+        shakeDuration = duration;
+        shakeTimer = duration;
+        shakeStrength = strength;
+    }
+
+    private Vector3 GetShakeOffset()
+    {
+        if (shakeTimer <= 0f)
+            return Vector3.zero;
+
+        shakeTimer -= Time.deltaTime;
+
+        float shake01 = shakeTimer / shakeDuration;
+        float currentStrength = shakeStrength * shake01;
+
+        return new Vector3(
+            Random.Range(-currentStrength, currentStrength),
+            0f,
+            Random.Range(-currentStrength, currentStrength)
+        );
     }
 }

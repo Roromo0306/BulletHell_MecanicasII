@@ -9,7 +9,8 @@ public class TimeSlowManager : MonoBehaviour
     public float slowDuration = 4f;
 
     [Header("Music")]
-    public AudioSource bossMusic;
+    public bool useGameMusicManager = true;
+    public AudioSource fallbackMusicSource;
     public float slowMusicPitch = 0.65f;
 
     [Header("Blue Overlay")]
@@ -20,15 +21,22 @@ public class TimeSlowManager : MonoBehaviour
     private Coroutine routine;
     private float originalFixedDeltaTime;
     private float originalMusicPitch = 1f;
+    private bool isSlowMotionActive;
 
     private void Awake()
     {
         originalFixedDeltaTime = Time.fixedDeltaTime;
 
-        if (bossMusic != null)
-            originalMusicPitch = bossMusic.pitch;
+        if (fallbackMusicSource != null)
+            originalMusicPitch = fallbackMusicSource.pitch;
 
         SetOverlayAlpha(0f);
+    }
+
+    private void OnDisable()
+    {
+        if (isSlowMotionActive)
+            ResetSlowMotionInstant();
     }
 
     public void PlaySlowMotion()
@@ -41,13 +49,14 @@ public class TimeSlowManager : MonoBehaviour
 
     private IEnumerator SlowMotionRoutine()
     {
+        isSlowMotionActive = true;
+
         Time.timeScale = slowTimeScale;
         Time.fixedDeltaTime = originalFixedDeltaTime * slowTimeScale;
 
-        if (bossMusic != null)
-            bossMusic.pitch = slowMusicPitch;
+        ApplySlowMusicPitch();
 
-        yield return StartCoroutine(FadeOverlay(0f, overlayAlpha));
+        yield return StartCoroutine(FadeOverlay(GetOverlayAlpha(), overlayAlpha));
 
         float timer = 0f;
 
@@ -57,15 +66,46 @@ public class TimeSlowManager : MonoBehaviour
             yield return null;
         }
 
-        yield return StartCoroutine(FadeOverlay(overlayAlpha, 0f));
+        yield return StartCoroutine(FadeOverlay(GetOverlayAlpha(), 0f));
 
+        ResetSlowMotionInstant();
+
+        routine = null;
+    }
+
+    private void ApplySlowMusicPitch()
+    {
+        if (useGameMusicManager && GameMusicManager.Instance != null)
+        {
+            GameMusicManager.Instance.SetMusicPitch(slowMusicPitch);
+            return;
+        }
+
+        if (fallbackMusicSource != null)
+            fallbackMusicSource.pitch = slowMusicPitch;
+    }
+
+    private void ResetMusicPitch()
+    {
+        if (useGameMusicManager && GameMusicManager.Instance != null)
+        {
+            GameMusicManager.Instance.ResetMusicPitch();
+            return;
+        }
+
+        if (fallbackMusicSource != null)
+            fallbackMusicSource.pitch = originalMusicPitch;
+    }
+
+    private void ResetSlowMotionInstant()
+    {
         Time.timeScale = 1f;
         Time.fixedDeltaTime = originalFixedDeltaTime;
 
-        if (bossMusic != null)
-            bossMusic.pitch = originalMusicPitch;
+        ResetMusicPitch();
+        SetOverlayAlpha(0f);
 
-        routine = null;
+        isSlowMotionActive = false;
     }
 
     private IEnumerator FadeOverlay(float from, float to)
@@ -83,6 +123,14 @@ public class TimeSlowManager : MonoBehaviour
         }
 
         SetOverlayAlpha(to);
+    }
+
+    private float GetOverlayAlpha()
+    {
+        if (blueOverlay == null)
+            return 0f;
+
+        return blueOverlay.color.a;
     }
 
     private void SetOverlayAlpha(float alpha)
