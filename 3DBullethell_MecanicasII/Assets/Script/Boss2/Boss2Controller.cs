@@ -103,6 +103,9 @@ public class Boss2Controller : MonoBehaviour
         isRaging = true;
         isAttacking = true;
 
+        if (GameSFXManager.Instance != null)
+            GameSFXManager.Instance.PlayBoss2Rage();
+
         Vector3 startPos = transform.position;
         Vector3 liftedPos = startPos + Vector3.up * rageLiftHeight;
 
@@ -195,6 +198,9 @@ public class Boss2Controller : MonoBehaviour
     {
         int r = Random.Range(0, 4);
 
+        if (GameSFXManager.Instance != null)
+            GameSFXManager.Instance.PlayBossBulletAttack();
+
         if (r == 0) yield return FlowerPattern();
         if (r == 1) yield return CloverPattern();
         if (r == 2) yield return ZigZagBurst();
@@ -204,6 +210,12 @@ public class Boss2Controller : MonoBehaviour
     private IEnumerator Phase2Attack()
     {
         int r = Random.Range(0, 5);
+
+        if (r != 4)
+        {
+            if (GameSFXManager.Instance != null)
+                GameSFXManager.Instance.PlayBossBulletAttack();
+        }
 
         if (r == 0) yield return BigFlowerPattern();
         if (r == 1) yield return CloverPatternHard();

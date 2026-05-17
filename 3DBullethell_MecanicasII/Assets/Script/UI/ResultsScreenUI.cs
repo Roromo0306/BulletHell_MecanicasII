@@ -117,6 +117,14 @@ public class ResultScreenUI : MonoBehaviour
         SetTexts(won);
         SetButtonsForResult(won);
 
+        if (GameSFXManager.Instance != null)
+        {
+            if (won)
+                GameSFXManager.Instance.PlayLevelCompleted();
+            else
+                GameSFXManager.Instance.PlayLose();
+        }
+
         StartCoroutine(ShowRoutine());
     }
 
@@ -367,6 +375,9 @@ public class ResultScreenUI : MonoBehaviour
 
     public void Retry()
     {
+        if (GameSFXManager.Instance != null)
+            GameSFXManager.Instance.PlayRetryButton();
+
         Time.timeScale = 1f;
 
         string currentScene = SceneManager.GetActiveScene().name;
@@ -380,6 +391,9 @@ public class ResultScreenUI : MonoBehaviour
 
     public void GoToNextScene()
     {
+        if (GameSFXManager.Instance != null)
+            GameSFXManager.Instance.PlayContinueButton();
+
         Time.timeScale = 1f;
 
         if (string.IsNullOrEmpty(nextSceneName))

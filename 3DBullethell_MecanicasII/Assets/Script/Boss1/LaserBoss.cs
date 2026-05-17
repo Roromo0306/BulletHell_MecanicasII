@@ -63,6 +63,8 @@ public class LaserBoss : MonoBehaviour
 
     private IEnumerator ShowTelegraph(Vector3 direction)
     {
+        if (GameSFXManager.Instance != null)
+            GameSFXManager.Instance.PlayLaserCharge();
         float timer = 0f;
 
         if (lineRenderer != null)
@@ -100,6 +102,9 @@ public class LaserBoss : MonoBehaviour
     }
     private IEnumerator FireLaser(Vector3 direction)
     {
+        if (GameSFXManager.Instance != null)
+            GameSFXManager.Instance.PlayLaserFire();
+
         float timer = 0f;
         nextDamageTime = 0f;
 

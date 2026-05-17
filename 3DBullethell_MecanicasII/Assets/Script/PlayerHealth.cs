@@ -69,6 +69,9 @@ public class PlayerHealth : MonoBehaviour
 
         Debug.Log("Player vida: " + currentHearts);
 
+        if (GameSFXManager.Instance != null)
+            GameSFXManager.Instance.PlayPlayerDamage();
+
         onHealthChanged?.Invoke();
 
         if (damageVignette != null)

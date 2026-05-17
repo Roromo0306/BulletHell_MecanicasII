@@ -153,6 +153,8 @@ public class CarryThrowableObject : MonoBehaviour
 
         if (throwableType == ThrowableType.Anchor)
         {
+            
+
             ThrowAnchorBoomerang(direction, charge01, throwOwner);
             return;
         }
@@ -323,6 +325,14 @@ public class CarryThrowableObject : MonoBehaviour
     {
         if (!hasBeenThrown) return;
 
+        if (GameSFXManager.Instance != null)
+        {
+            if (throwableType == ThrowableType.RumBottle)
+                GameSFXManager.Instance.PlayBottleImpact();
+            else if (throwableType == ThrowableType.CannonBall)
+                GameSFXManager.Instance.PlayCannonBallImpact();
+        }
+
         DamageBossesInRadius();
 
         if (impactParticles != null)
@@ -354,6 +364,10 @@ public class CarryThrowableObject : MonoBehaviour
         {
             alreadyHitBosses.Add(rootObject);
             boss1.TakeDamage(damage);
+
+            if (throwableType == ThrowableType.Anchor && GameSFXManager.Instance != null)
+                GameSFXManager.Instance.PlayAnchor();
+
             return;
         }
 
@@ -363,6 +377,10 @@ public class CarryThrowableObject : MonoBehaviour
         {
             alreadyHitBosses.Add(rootObject);
             boss2.TakeDamage(damage);
+
+            if (throwableType == ThrowableType.Anchor && GameSFXManager.Instance != null)
+                GameSFXManager.Instance.PlayAnchor();
+
             return;
         }
 
@@ -372,6 +390,10 @@ public class CarryThrowableObject : MonoBehaviour
         {
             alreadyHitBosses.Add(rootObject);
             boss3.TakeDamage(damage);
+
+            if (throwableType == ThrowableType.Anchor && GameSFXManager.Instance != null)
+                GameSFXManager.Instance.PlayAnchor();
+
             return;
         }
     }

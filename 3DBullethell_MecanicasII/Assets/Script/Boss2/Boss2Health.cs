@@ -36,6 +36,9 @@ public class Boss2Health : MonoBehaviour
 
         Debug.Log("Boss 2 vida: " + currentHealth);
 
+        if (GameSFXManager.Instance != null)
+            GameSFXManager.Instance.PlayBossDamage();
+
         onHealthChanged?.Invoke();
 
         if (currentHealth <= 0)

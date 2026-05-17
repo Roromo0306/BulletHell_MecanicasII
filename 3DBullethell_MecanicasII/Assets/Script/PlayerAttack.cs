@@ -82,6 +82,9 @@ public class PlayerAttack : MonoBehaviour
         if (playerAnimator != null)
             playerAnimator.PlayAttack();
 
+        if (GameSFXManager.Instance != null)
+            GameSFXManager.Instance.PlaySword();
+
         StartSwordShake();
 
         Vector3 attackDirection = playerMovement.LastMoveDirection;

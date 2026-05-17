@@ -45,6 +45,9 @@ public class BossHealth : MonoBehaviour
 
         Debug.Log("Boss recibió daño. Vida: " + currentHealth);
 
+        if (GameSFXManager.Instance != null)
+            GameSFXManager.Instance.PlayBossDamage();
+
         if (currentHealth <= 0)
         {
             Die();

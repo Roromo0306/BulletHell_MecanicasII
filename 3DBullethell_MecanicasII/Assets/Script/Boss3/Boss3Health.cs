@@ -35,6 +35,8 @@ public class Boss3Health : MonoBehaviour
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
         Debug.Log("Boss 3 vida: " + currentHealth);
+        if (GameSFXManager.Instance != null)
+            GameSFXManager.Instance.PlayBossDamage();
 
         onHealthChanged?.Invoke();
 

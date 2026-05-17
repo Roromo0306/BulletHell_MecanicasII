@@ -203,6 +203,8 @@ public class PlayerMovement : MonoBehaviour
         canDash = false;
 
         Debug.Log("Dash iniciado");
+        if (GameSFXManager.Instance != null)
+            GameSFXManager.Instance.PlayDash();
 
         Vector3 dashDirection = moveInput.sqrMagnitude > 0.01f
             ? moveInput.normalized

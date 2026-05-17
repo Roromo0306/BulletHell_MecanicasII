@@ -13,6 +13,15 @@ public class BossEncounterTrigger : MonoBehaviour
     [Tooltip("Aquí metes los scripts que arrancan la batalla: BossController, Boss2Controller o Boss3Controller.")]
     public Behaviour[] bossBehavioursToEnable;
 
+    [Header("Battle Colliders")]
+    public Collider[] collidersToEnableWhenBattleStarts;
+    public bool disableBattleCollidersOnAwake = true;
+
+    [Header("Camera")]
+    public CameraFollow cameraFollow;
+    public bool setCameraToExplorationBoundsOnAwake = true;
+    public bool setCameraToBattleBoundsWhenBattleStarts = true;
+
     [Header("UI Intro")]
     public BossNameWaveUI bossNameWaveUI;
 
@@ -39,8 +48,15 @@ public class BossEncounterTrigger : MonoBehaviour
         if (triggerCollider != null)
             triggerCollider.isTrigger = true;
 
+        if (cameraFollow == null)
+            cameraFollow = FindObjectOfType<CameraFollow>();
+
+        if (cameraFollow != null && setCameraToExplorationBoundsOnAwake)
+            cameraFollow.UseExplorationBounds();
+
         PrepareBossInactive();
         HideHealthBarInstant();
+        PrepareBattleColliders();
     }
 
     private void PrepareBossInactive()
@@ -49,6 +65,26 @@ public class BossEncounterTrigger : MonoBehaviour
             bossRoot.SetActive(false);
 
         SetBossBehaviours(false);
+    }
+
+    private void PrepareBattleColliders()
+    {
+        if (!disableBattleCollidersOnAwake)
+            return;
+
+        SetBattleColliders(false);
+    }
+
+    private void SetBattleColliders(bool value)
+    {
+        if (collidersToEnableWhenBattleStarts == null)
+            return;
+
+        foreach (Collider battleCollider in collidersToEnableWhenBattleStarts)
+        {
+            if (battleCollider != null)
+                battleCollider.enabled = value;
+        }
     }
 
     private void SetBossBehaviours(bool value)
@@ -122,6 +158,10 @@ public class BossEncounterTrigger : MonoBehaviour
         if (lockPlayerDuringIntro && playerMovement != null)
             playerMovement.CanMove = true;
 
+        if (cameraFollow != null && setCameraToBattleBoundsWhenBattleStarts)
+            cameraFollow.UseBattleBounds();
+
+        SetBattleColliders(true);
         SetBossBehaviours(true);
     }
 

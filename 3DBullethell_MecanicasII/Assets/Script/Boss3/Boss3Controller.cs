@@ -165,6 +165,9 @@ public class Boss3Controller : MonoBehaviour
         isAttacking = true;
         isRamming = false;
 
+        if (GameSFXManager.Instance != null)
+            GameSFXManager.Instance.PlayBoss3Rage();
+
         if (ramHitbox != null)
             ramHitbox.SetActiveHitbox(false);
 
@@ -260,6 +263,9 @@ public class Boss3Controller : MonoBehaviour
 
         transform.position = startPos;
 
+        if (GameSFXManager.Instance != null)
+            GameSFXManager.Instance.PlayBossDash();
+
         if (ramHitbox != null)
             ramHitbox.SetActiveHitbox(true);
 
@@ -353,6 +359,12 @@ public class Boss3Controller : MonoBehaviour
     {
         int r = Random.Range(0, 7);
 
+        if (r != 6)
+        {
+            if (GameSFXManager.Instance != null)
+                GameSFXManager.Instance.PlayBossBulletAttack();
+        }
+
         switch (r)
         {
             case 0:
@@ -389,6 +401,12 @@ public class Boss3Controller : MonoBehaviour
     {
         int r = Random.Range(0, 5);
 
+        if (r != 4)
+        {
+            if (GameSFXManager.Instance != null)
+                GameSFXManager.Instance.PlayBossBulletAttack();
+        }
+
         switch (r)
         {
             case 0:
@@ -416,6 +434,12 @@ public class Boss3Controller : MonoBehaviour
     private IEnumerator Phase3Attack()
     {
         int r = Random.Range(0, 8);
+
+        if (r != 6)
+        {
+            if (GameSFXManager.Instance != null)
+                GameSFXManager.Instance.PlayBossBulletAttack();
+        }
 
         switch (r)
         {

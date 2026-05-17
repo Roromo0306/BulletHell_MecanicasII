@@ -46,6 +46,9 @@ public class BulletHellBoss : MonoBehaviour
 
         int pattern = Random.Range(0, 3);
 
+        if (GameSFXManager.Instance != null)
+            GameSFXManager.Instance.PlayBossBulletAttack();
+
         if (pattern == 0)
             yield return StartCoroutine(CirclePattern());
         else if (pattern == 1)
@@ -116,6 +119,8 @@ public class BulletHellBoss : MonoBehaviour
 
     private void SpawnBullet(Vector3 direction, float speed)
     {
+       
+
         GameObject bulletObj = Instantiate(
             bulletPrefab,
             bulletSpawnPoint.position,

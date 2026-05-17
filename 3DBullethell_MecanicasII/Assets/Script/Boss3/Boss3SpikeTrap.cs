@@ -69,6 +69,9 @@ public class Boss3SpikeTrap : MonoBehaviour
 
         yield return StartCoroutine(MoveSpike(Vector3.down * hiddenDepth, Vector3.zero, riseTime));
 
+        if (GameSFXManager.Instance != null)
+            GameSFXManager.Instance.PlayBoss3Spike();
+
         yield return new WaitForSeconds(stayTime);
 
         canDamage = false;

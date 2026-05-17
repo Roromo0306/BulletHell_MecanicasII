@@ -196,13 +196,22 @@ public class PlayerConsumableCarrier : MonoBehaviour
         }
 
         playerHealth.Heal(1);
+
+        if (GameSFXManager.Instance != null)
+            GameSFXManager.Instance.PlayHeartConsumable();
         ConsumeHeld();
     }
 
     private void UseHourglass()
     {
         if (timeSlowManager != null)
+        {
             timeSlowManager.PlaySlowMotion();
+            if (GameSFXManager.Instance != null)
+                GameSFXManager.Instance.PlayHourglassConsumable();
+        }
+           
+       
         else
             Debug.LogWarning("Falta asignar TimeSlowManager");
 
@@ -215,6 +224,8 @@ public class PlayerConsumableCarrier : MonoBehaviour
         {
             Debug.Log("Activando Bubble Shield");
             bubbleShieldController.Activate();
+            if (GameSFXManager.Instance != null)
+                GameSFXManager.Instance.PlayBubbleConsumable();
             ConsumeHeld();
         }
         else

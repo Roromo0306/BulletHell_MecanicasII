@@ -36,22 +36,25 @@ public class MainMenuController : MonoBehaviour
     [Header("Gamepad Navigation")]
     public string verticalAxis = "Vertical";
     public float deadZone = 0.55f;
-
-    [Tooltip("Tiempo mínimo entre movimientos. Con el sistema nuevo casi no hace falta, pero ayuda a evitar dobles inputs.")]
     public float moveCooldown = 0.28f;
 
     [Header("Gamepad Buttons")]
-    public KeyCode submitButton = KeyCode.JoystickButton0; // A / X
-    public KeyCode cancelButton = KeyCode.JoystickButton1; // B / Circle
+    public bool useManualSubmit = true;
+    public KeyCode submitButton = KeyCode.JoystickButton1;
+    public KeyCode cancelButton = KeyCode.JoystickButton2;
 
     [Header("Keyboard Fallback")]
     public KeyCode submitKeyboard = KeyCode.Return;
     public KeyCode cancelKeyboard = KeyCode.Escape;
 
+    [Header("Input Safety")]
+    public float submitCooldown = 0.2f;
+
     private int currentIndex;
     private float nextMoveTime;
-    private bool inputLocked;
+    private float nextSubmitTime;
 
+    private bool inputLocked;
     private bool navigationAxisHeld;
 
     private Vector3 originalTitleScale;
@@ -81,6 +84,7 @@ public class MainMenuController : MonoBehaviour
     {
         if (inputLocked) return;
 
+        SyncIndexWithEventSystemSelection();
         HandleNavigation();
         HandleSubmit();
         HandleCancel();
@@ -105,6 +109,7 @@ public class MainMenuController : MonoBehaviour
         while (timer < introDuration)
         {
             timer += Time.unscaledDeltaTime;
+
             float t = timer / introDuration;
             t = EaseOutBack(t);
 
@@ -140,6 +145,35 @@ public class MainMenuController : MonoBehaviour
         SelectCurrentButton();
     }
 
+    private void SyncIndexWithEventSystemSelection()
+    {
+        if (currentState != MenuState.Main)
+            return;
+
+        if (mainButtons == null || mainButtons.Length == 0)
+            return;
+
+        if (EventSystem.current == null)
+            return;
+
+        GameObject selectedObject = EventSystem.current.currentSelectedGameObject;
+
+        if (selectedObject == null)
+        {
+            SelectCurrentButton();
+            return;
+        }
+
+        for (int i = 0; i < mainButtons.Length; i++)
+        {
+            if (mainButtons[i] != null && mainButtons[i].gameObject == selectedObject)
+            {
+                currentIndex = i;
+                return;
+            }
+        }
+    }
+
     private void HandleNavigation()
     {
         if (currentState != MenuState.Main)
@@ -147,14 +181,12 @@ public class MainMenuController : MonoBehaviour
 
         float vertical = Input.GetAxisRaw(verticalAxis);
 
-        // Cuando el stick vuelve al centro, permitimos otro movimiento.
         if (Mathf.Abs(vertical) < deadZone)
         {
             navigationAxisHeld = false;
             return;
         }
 
-        // Si el stick sigue inclinado, no vuelve a moverse.
         if (navigationAxisHeld)
             return;
 
@@ -168,6 +200,80 @@ public class MainMenuController : MonoBehaviour
 
         navigationAxisHeld = true;
         nextMoveTime = Time.unscaledTime + moveCooldown;
+    }
+
+    private void HandleSubmit()
+    {
+        if (!useManualSubmit)
+            return;
+
+        if (!Input.GetKeyDown(submitButton) && !Input.GetKeyDown(submitKeyboard))
+            return;
+
+        if (Time.unscaledTime < nextSubmitTime)
+            return;
+
+        nextSubmitTime = Time.unscaledTime + submitCooldown;
+
+        Button selectedButton = GetSelectedButton();
+
+        if (selectedButton == null)
+        {
+            if (currentState == MenuState.Main)
+            {
+                SelectCurrentButton();
+                selectedButton = GetSelectedButton();
+            }
+            else if (currentState == MenuState.Credits)
+            {
+                SelectButton(creditsCloseButton);
+                selectedButton = creditsCloseButton;
+            }
+            else if (currentState == MenuState.Options)
+            {
+                SelectButton(optionsCloseButton);
+                selectedButton = optionsCloseButton;
+            }
+        }
+
+        if (selectedButton == null)
+            return;
+
+        if (!selectedButton.interactable)
+            return;
+
+        selectedButton.onClick.Invoke();
+    }
+
+    private void HandleCancel()
+    {
+        if (!Input.GetKeyDown(cancelButton) && !Input.GetKeyDown(cancelKeyboard))
+            return;
+
+        if (currentState == MenuState.Credits)
+        {
+            CloseCredits();
+            return;
+        }
+
+        if (currentState == MenuState.Options)
+        {
+            CloseOptions();
+            return;
+        }
+    }
+
+    private Button GetSelectedButton()
+    {
+        if (EventSystem.current == null)
+            return null;
+
+        GameObject selectedObject = EventSystem.current.currentSelectedGameObject;
+
+        if (selectedObject == null)
+            return null;
+
+        return selectedObject.GetComponent<Button>();
     }
 
     private void MoveSelection(int direction)
@@ -196,13 +302,7 @@ public class MainMenuController : MonoBehaviour
         if (selectedButton == null)
             return;
 
-        if (EventSystem.current != null)
-        {
-            EventSystem.current.SetSelectedGameObject(null);
-            EventSystem.current.SetSelectedGameObject(selectedButton.gameObject);
-        }
-
-        selectedButton.Select();
+        SelectButton(selectedButton);
     }
 
     private void SelectButton(Button button)
@@ -217,59 +317,6 @@ public class MainMenuController : MonoBehaviour
         }
 
         button.Select();
-    }
-
-    private void HandleSubmit()
-    {
-        if (!Input.GetKeyDown(submitButton) && !Input.GetKeyDown(submitKeyboard))
-            return;
-
-        if (currentState == MenuState.Main)
-        {
-            if (mainButtons == null || mainButtons.Length == 0)
-                return;
-
-            Button selectedButton = mainButtons[currentIndex];
-
-            if (selectedButton != null)
-                selectedButton.onClick.Invoke();
-
-            return;
-        }
-
-        if (currentState == MenuState.Credits)
-        {
-            if (creditsCloseButton != null)
-                creditsCloseButton.onClick.Invoke();
-
-            return;
-        }
-
-        if (currentState == MenuState.Options)
-        {
-            if (optionsCloseButton != null)
-                optionsCloseButton.onClick.Invoke();
-
-            return;
-        }
-    }
-
-    private void HandleCancel()
-    {
-        if (!Input.GetKeyDown(cancelButton) && !Input.GetKeyDown(cancelKeyboard))
-            return;
-
-        if (currentState == MenuState.Credits)
-        {
-            CloseCredits();
-            return;
-        }
-
-        if (currentState == MenuState.Options)
-        {
-            CloseOptions();
-            return;
-        }
     }
 
     public void Play()
